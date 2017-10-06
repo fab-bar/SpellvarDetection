@@ -28,9 +28,25 @@ def createCandidateGenerator(generator_type, options):
     """Factory for candidate generators."""
 
     generator_types = {
+        'lookup': (['dictionary'], lambda: LookupGenerator(options['dictionary']))
     }
 
     if generator_type not in generator_types:
         raise ValueError('No candidate generator of type "' + generator_type + '" exists.')
 
-    generator_types[generator_type]()
+    if not all(name in options for name in generator_types[generator_type][0]):
+        raise ValueError('Missing options for generator of type ' + generator_type)
+
+    return generator_types[generator_type][1]()
+
+### Generators
+class LookupGenerator(_AbstractCandidateGenerator):
+    """A spelling variant generator based on a simple dictionary lookup"""
+
+    def __init__(self, candidate_dictionary):
+
+        self.candidate_dictionary = candidate_dictionary
+
+    def getCandidatesForWord(self, word):
+
+        return self.candidate_dictionary.get(word, set())
