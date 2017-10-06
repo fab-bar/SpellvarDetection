@@ -22,3 +22,11 @@ class TestGeneratorFactory(unittest.TestCase):
                                                                  {'dictionary': {'cat': set('abc')}}),
             spellvardetection.generator.LookupGenerator
         )
+
+    def test_factory_for_gent_gml_simplification_generator(self):
+
+        self.assertIsInstance(
+            spellvardetection.generator.createCandidateGenerator("gent_gml_simplification",
+                                                                 {'dictionary': ['cat']}),
+            spellvardetection.generator.GentGMLSimplificationGenerator
+        )
