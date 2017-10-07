@@ -3,6 +3,7 @@
 import multiprocessing
 import abc
 import re
+import collections
 
 ### this function is used to allow to use an instance method in pool.map
 ### based on http://www.rueckstiess.net/research/snippets/show/ca1d7d90
@@ -32,6 +33,10 @@ def createCandidateGenerator(generator_type, options):
         'lookup': (
             ['dictionary'],
             lambda: LookupGenerator(options['dictionary'])
+        ),
+        'simplification': (
+            ['dictionary', 'ruleset'],
+            lambda: SimplificationGenerator(options['ruleset'], options['dictionary'], options.get('generator', None))
         ),
         'gent_gml_simplification': (
             ['dictionary'],
@@ -123,3 +128,35 @@ class GentGMLSimplificationGenerator(_AbstractSimplificationGenerator):
         last_rule = re.sub(r'(?<=\b).nd[e]?(?=\b)', 'vnde', rule25)
 
         return last_rule
+
+
+class SimplificationGenerator(_AbstractSimplificationGenerator):
+
+    def _AbstractSimplificationGenerator__apply_rules(self, word):
+
+        for lhs, rhs in self.simplification_rules:
+            word = word.replace(lhs, rhs)
+
+        return word
+
+    def __init__(self, simplification_rules, dictionary, generator=None):
+
+        ## sort substitution rules internally: left side should be < then right side (except for deletion rules)
+        simplification_rules = [sorted(rule, key=lambda t: (-len(t), t)) for rule in simplification_rules]
+        ## process the rules: resolve competing rules, e.g. (i→j) and (i→y), should become (i→y), (j→y)
+        rule_dict = collections.defaultdict(set)
+        for lhs, rhs in simplification_rules:
+            rule_dict[lhs].add(rhs)
+        self.simplification_rules = []
+        while rule_dict:
+            lhs = sorted(rule_dict.keys())[0]
+            rhs_list = rule_dict.pop(lhs)
+            rhsides = sorted(rhs_list)
+            target = rhsides.pop()
+            self.simplification_rules.append((lhs, target))
+            for rhs in rhsides:
+                rule_dict[rhs].add(target)
+        ## sort rules by length and alphabet (to apply deletion rules first)
+        self.simplification_rules = sorted(self.simplification_rules, key=lambda t: (-len(t[0]), t[0]))
+
+        super().__init__(dictionary, generator)
