@@ -5,9 +5,9 @@ class DictAutomaton:
     ANY_INPUT = '__ANY__'
     EPSILON = '__EPSILON__'
 
-    def fuzzySearch(self, word, distance, merge_split=False, transposition=False):
+    def fuzzySearch(self, word, distance, merge_split=False, transposition=False, repetitions=False):
 
-        lev_aut = self._create_levenshtein_dfa(word, distance, merge_split=merge_split, transposition=transposition)
+        lev_aut = self._create_levenshtein_dfa(word, distance, merge_split=merge_split, transposition=transposition, repetitions=repetitions)
         acceptor = dfa_intersection(lev_aut, self.automaton)
         return set([state[1] for state in acceptor['accepting_states']])
 
@@ -73,7 +73,7 @@ class DictAutomaton:
         else:
             self._add_transition(transitions, source_state, character, target_states)
 
-    def _create_levenshtein_dfa(self, word, distance, merge_split=False, transposition=False):
+    def _create_levenshtein_dfa(self, word, distance, merge_split=False, transposition=False, repetitions=False):
 
         initial_state = (0,0)
 
@@ -97,6 +97,18 @@ class DictAutomaton:
 
                 # Match
                 self._add_transition(transitions, current_state, character, set([(position + 1, error)]))
+
+                # Repetitions
+                if repetitions:
+                    ## Repetition state
+                    self._add_transition(transitions, current_state, character, set([('rep', character, position + 1, error)]))
+                    ## Repetition in the target word
+                    self._add_transition(transitions, ('rep', character, position + 1, error), character, set([('rep', character, position + 1, error)]))
+                    ## Repetition in the current word
+                    if last_char and character == last_char:
+                        self._add_transition(transitions, ('rep', character, position, error), self.EPSILON, set([('rep', character, position + 1, error)]))
+                    ## Leave repetition state
+                    self._add_transition(transitions, ('rep', character, position + 1, error), self.EPSILON, set([(position + 1, error)]))
 
                 if error < distance:
 
