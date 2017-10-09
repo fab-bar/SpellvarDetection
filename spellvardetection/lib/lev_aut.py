@@ -5,9 +5,9 @@ class DictAutomaton:
     ANY_INPUT = '__ANY__'
     EPSILON = '__EPSILON__'
 
-    def fuzzySearch(self, word, distance):
+    def fuzzySearch(self, word, distance, merge_split=False, transposition=False):
 
-        lev_aut = self._create_levenshtein_dfa(word, distance)
+        lev_aut = self._create_levenshtein_dfa(word, distance, merge_split=merge_split, transposition=transposition)
         acceptor = dfa_intersection(lev_aut, self.automaton)
         return set([state[1] for state in acceptor['accepting_states']])
 
@@ -73,7 +73,7 @@ class DictAutomaton:
         else:
             self._add_transition(transitions, source_state, character, target_states)
 
-    def _create_levenshtein_dfa(self, word, distance):
+    def _create_levenshtein_dfa(self, word, distance, merge_split=False, transposition=False):
 
         initial_state = (0,0)
 
@@ -108,6 +108,19 @@ class DictAutomaton:
 
                     # Deletion
                     self._add_transition(transitions, current_state, self.EPSILON, set([(position + 1, error + 1)]))
+
+                    # Merge and Split
+                    if merge_split:
+                        # Merge
+                        self._add_transition(transitions, current_state, self.ANY_INPUT, set([(position + 2, error + 1)]))
+                        # Split
+                        self._add_transition(transitions, current_state, self.ANY_INPUT, set([(('split', position), error)]))
+                        self._add_transition(transitions, (('split', position), error), self.ANY_INPUT, set([(position + 1, error + 1)]))
+
+                    # Transposition
+                    if transposition and last_char:
+                        self._add_transition(transitions, (position - 1, error), character, set([(('transposition', position), error)]))
+                        self._add_transition(transitions, (('transposition', position), error), last_char, set([(position + 1, error + 1)]))
 
             last_char = character
 
