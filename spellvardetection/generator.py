@@ -4,6 +4,7 @@ import multiprocessing
 import abc
 import re
 import collections
+import math
 
 from spellvardetection.lib.lev_aut import DictAutomaton
 
@@ -47,6 +48,10 @@ def createCandidateGenerator(generator_type, options):
         'levenshtein': (
             ['dictionary'],
             lambda: LevenshteinGenerator(options['dictionary'], options.get('max_dist', 2), options.get('transposition', False), options.get('merge_split', False), options.get('repetitions', False))
+        ),
+        'levenshtein_normalized': (
+            ['dictionary'],
+            lambda: LevenshteinNormalizedGenerator(options['dictionary'], options.get('dist_thresh', 0.1), options.get('no_zero_dist', True), options.get('transposition', False), options.get('merge_split', False), options.get('repetitions', False))
         )
     }
 
@@ -167,22 +172,50 @@ class SimplificationGenerator(_AbstractSimplificationGenerator):
 
         super().__init__(dictionary, generator)
 
-class LevenshteinGenerator(_AbstractCandidateGenerator):
+class _LevenshteinAutomatonGenerator(_AbstractCandidateGenerator):
 
-    def __init__(self, dictionary, max_dist, transposition=False, merge_split=False, repetitions=False):
+    def __init__(self, dictionary, transposition=False, merge_split=False, repetitions=False):
 
         self.dict_automaton = DictAutomaton(dictionary)
         self.transposition = transposition
         self.merge_split = merge_split
         self.repetitions = repetitions
 
-        self.max_dist = max_dist
+    def _getCandidatesForWord(self, word, distance):
 
-    def getCandidatesForWord(self, word):
-
-        cands = self.dict_automaton.fuzzySearch(word, self.max_dist, transposition=self.transposition, merge_split=self.merge_split, repetitions=self.repetitions)
+        cands = self.dict_automaton.fuzzySearch(word, distance, transposition=self.transposition, merge_split=self.merge_split, repetitions=self.repetitions)
 
         if word in cands:
             cands.remove(word)
 
         return cands
+
+class LevenshteinGenerator(_LevenshteinAutomatonGenerator):
+
+    def __init__(self, dictionary, max_dist, transposition=False, merge_split=False, repetitions=False):
+
+        super().__init__(dictionary, transposition, merge_split, repetitions)
+
+        self.max_dist = max_dist
+
+    def getCandidatesForWord(self, word):
+
+        return super()._getCandidatesForWord(word, self.max_dist)
+
+
+class LevenshteinNormalizedGenerator(_LevenshteinAutomatonGenerator):
+
+    def __init__(self, dictionary, dist_thresh, no_zero_dist=True, transposition=False, merge_split=False, repetitions=False):
+
+        super().__init__(dictionary, transposition, merge_split, repetitions)
+
+        self.dist_thresh = dist_thresh
+        self.no_zero_dist = no_zero_dist
+
+    def getCandidatesForWord(self, word):
+
+        dist = math.floor(self.dist_thresh*len(word))
+        if self.no_zero_dist:
+            dist = max(1, dist)
+
+        return super()._getCandidatesForWord(word, dist)

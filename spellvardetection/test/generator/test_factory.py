@@ -46,3 +46,12 @@ class TestGeneratorFactory(unittest.TestCase):
                                                                  {'dictionary': ['cat']}),
             spellvardetection.generator.LevenshteinGenerator
         )
+
+
+    def test_factory_for_levenshteinnormalized_generator(self):
+
+        self.assertIsInstance(
+            spellvardetection.generator.createCandidateGenerator("levenshtein_normalized",
+                                                                 {'dictionary': ['cat']}),
+            spellvardetection.generator.LevenshteinNormalizedGenerator
+        )
