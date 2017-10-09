@@ -5,6 +5,8 @@ import abc
 import re
 import collections
 
+from spellvardetection.lib.lev_aut import DictAutomaton
+
 ### this function is used to allow to use an instance method in pool.map
 ### based on http://www.rueckstiess.net/research/snippets/show/ca1d7d90
 def _unwrap_self(arg, **kwarg):
@@ -41,6 +43,10 @@ def createCandidateGenerator(generator_type, options):
         'gent_gml_simplification': (
             ['dictionary'],
             lambda: GentGMLSimplificationGenerator(options['dictionary'], options.get('generator', None))
+        ),
+        'levenshtein': (
+            ['dictionary'],
+            lambda: LevenshteinGenerator(options['dictionary'], options.get('max_dist', 2), options.get('transposition', False), options.get('merge_split', False), options.get('repetitions', False))
         )
     }
 
@@ -160,3 +166,23 @@ class SimplificationGenerator(_AbstractSimplificationGenerator):
         self.simplification_rules = sorted(self.simplification_rules, key=lambda t: (-len(t[0]), t[0]))
 
         super().__init__(dictionary, generator)
+
+class LevenshteinGenerator(_AbstractCandidateGenerator):
+
+    def __init__(self, dictionary, max_dist, transposition=False, merge_split=False, repetitions=False):
+
+        self.dict_automaton = DictAutomaton(dictionary)
+        self.transposition = transposition
+        self.merge_split = merge_split
+        self.repetitions = repetitions
+
+        self.max_dist = max_dist
+
+    def getCandidatesForWord(self, word):
+
+        cands = self.dict_automaton.fuzzySearch(word, self.max_dist, transposition=self.transposition, merge_split=self.merge_split, repetitions=self.repetitions)
+
+        if word in cands:
+            cands.remove(word)
+
+        return cands

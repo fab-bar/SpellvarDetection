@@ -38,3 +38,11 @@ class TestGeneratorFactory(unittest.TestCase):
                                                                  {'dictionary': ['cat'], 'ruleset': [('b', 'a'), ('g', 'gh')]}),
             spellvardetection.generator.SimplificationGenerator
         )
+
+    def test_factory_for_levenshtein_generator(self):
+
+        self.assertIsInstance(
+            spellvardetection.generator.createCandidateGenerator("levenshtein",
+                                                                 {'dictionary': ['cat']}),
+            spellvardetection.generator.LevenshteinGenerator
+        )
