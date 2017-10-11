@@ -7,6 +7,7 @@ import collections
 import math
 
 from spellvardetection.lib.lev_aut import DictAutomaton
+import spellvardetection.lib.util
 
 ### this function is used to allow to use an instance method in pool.map
 ### based on http://www.rueckstiess.net/research/snippets/show/ca1d7d90
@@ -29,39 +30,30 @@ class _AbstractCandidateGenerator(metaclass=abc.ABCMeta):
             return {word: candidates for word, candidates in pool.map(_unwrap_self, zip([self]*len(words), words))}
 
 ## Factory for generators
-def createCandidateGenerator(generator_type, options):
-    """Factory for candidate generators."""
-
-    generator_types = {
+createCandidateGenerator = spellvardetection.lib.util.createFactory("generator",
+    {
         'lookup': (
             ['dictionary'],
-            lambda: LookupGenerator(options['dictionary'])
+            lambda options: LookupGenerator(options['dictionary'])
         ),
         'simplification': (
             ['dictionary', 'ruleset'],
-            lambda: SimplificationGenerator(options['ruleset'], options['dictionary'], options.get('generator', None))
+            lambda options: SimplificationGenerator(options['ruleset'], options['dictionary'], options.get('generator', None))
         ),
         'gent_gml_simplification': (
             ['dictionary'],
-            lambda: GentGMLSimplificationGenerator(options['dictionary'], options.get('generator', None))
+            lambda options: GentGMLSimplificationGenerator(options['dictionary'], options.get('generator', None))
         ),
         'levenshtein': (
             ['dictionary'],
-            lambda: LevenshteinGenerator(options['dictionary'], options.get('max_dist', 2), options.get('transposition', False), options.get('merge_split', False), options.get('repetitions', False))
+            lambda options: LevenshteinGenerator(options['dictionary'], options.get('max_dist', 2), options.get('transposition', False), options.get('merge_split', False), options.get('repetitions', False))
         ),
         'levenshtein_normalized': (
             ['dictionary'],
-            lambda: LevenshteinNormalizedGenerator(options['dictionary'], options.get('dist_thresh', 0.1), options.get('no_zero_dist', True), options.get('transposition', False), options.get('merge_split', False), options.get('repetitions', False))
+            lambda options: LevenshteinNormalizedGenerator(options['dictionary'], options.get('dist_thresh', 0.1), options.get('no_zero_dist', True), options.get('transposition', False), options.get('merge_split', False), options.get('repetitions', False))
         )
     }
-
-    if generator_type not in generator_types:
-        raise ValueError('No candidate generator of type "' + generator_type + '" exists.')
-
-    if not all(name in options for name in generator_types[generator_type][0]):
-        raise ValueError('Missing options for generator of type ' + generator_type)
-
-    return generator_types[generator_type][1]()
+)
 
 ### Generators
 class LookupGenerator(_AbstractCandidateGenerator):
