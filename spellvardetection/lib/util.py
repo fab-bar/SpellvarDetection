@@ -1,5 +1,13 @@
 # -*- coding: utf-8 -*-
 
+import json
+
+def load_from_file_if_string(option):
+    if isinstance(option, str):
+        return json.load(open(option, 'r'))
+    else:
+        return option
+
 def createFactory(factory_type, object_types):
 
     def factory(object_type, options):

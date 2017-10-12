@@ -60,8 +60,7 @@ class LookupGenerator(_AbstractCandidateGenerator):
     """A spelling variant generator based on a simple dictionary lookup"""
 
     def __init__(self, candidate_dictionary):
-
-        self.candidate_dictionary = candidate_dictionary
+        self.candidate_dictionary = spellvardetection.lib.util.load_from_file_if_string(candidate_dictionary)
 
     def getCandidatesForWord(self, word):
 
@@ -72,6 +71,8 @@ class _AbstractSimplificationGenerator(_AbstractCandidateGenerator):
 
     def __init__(self, dictionary, generator=None):
 
+        dictionary = spellvardetection.lib.util.load_from_file_if_string(dictionary)
+
         self.simpl_candidates = {}
         for word in dictionary:
             simpl_word = self.__apply_rules(word)
@@ -81,6 +82,7 @@ class _AbstractSimplificationGenerator(_AbstractCandidateGenerator):
 
         self.generator = None
         if generator is not None:
+            generator = spellvardetection.lib.util.load_from_file_if_string(generator)
             self.generator = createCandidateGenerator(generator[0], {**generator[1], **{'dictionary': self.simpl_candidates.keys()}})
 
     @abc.abstractmethod
@@ -144,6 +146,8 @@ class SimplificationGenerator(_AbstractSimplificationGenerator):
 
     def __init__(self, simplification_rules, dictionary, generator=None):
 
+        simplification_rules = spellvardetection.lib.util.load_from_file_if_string(simplification_rules)
+
         ## sort substitution rules internally: left side should be < then right side (except for deletion rules)
         simplification_rules = [sorted(rule, key=lambda t: (-len(t), t)) for rule in simplification_rules]
         ## process the rules: resolve competing rules, e.g. (i→j) and (i→y), should become (i→y), (j→y)
@@ -168,7 +172,7 @@ class _LevenshteinAutomatonGenerator(_AbstractCandidateGenerator):
 
     def __init__(self, dictionary, transposition=False, merge_split=False, repetitions=False):
 
-        self.dict_automaton = DictAutomaton(dictionary)
+        self.dict_automaton = DictAutomaton(spellvardetection.lib.util.load_from_file_if_string(dictionary))
         self.transposition = transposition
         self.merge_split = merge_split
         self.repetitions = repetitions
