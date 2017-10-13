@@ -96,7 +96,7 @@ class _AbstractSimplificationGenerator(_AbstractCandidateGenerator):
         if self.generator is not None:
             simpl_words.extend(self.generator.getCandidatesForWord(simpl_words[0]))
 
-        return set.union(*[self.simpl_candidates[simpl_word] for simpl_word in simpl_words]).difference([word])
+        return set.union(*[self.simpl_candidates.get(simpl_word, set([])) for simpl_word in simpl_words]).difference([word])
 
 
 ### A simplification generator with the rules from Koleva et al. 2017 (https://doi.org/10.1075/ijcl.22.1.05kol)
