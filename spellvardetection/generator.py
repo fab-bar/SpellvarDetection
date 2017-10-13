@@ -5,14 +5,10 @@ import abc
 import re
 import collections
 import math
+import functools
 
 from spellvardetection.lib.lev_aut import DictAutomaton
 import spellvardetection.lib.util
-
-### this function is used to allow to use an instance method in pool.map
-### based on http://www.rueckstiess.net/research/snippets/show/ca1d7d90
-def _unwrap_self(arg, **kwarg):
-    return type(arg[0])._AbstractCandidateGenerator__getWordCandidatesPair(*arg, **kwarg)
 
 ### The common interface for candidate generators
 class _AbstractCandidateGenerator(metaclass=abc.ABCMeta):
@@ -27,7 +23,11 @@ class _AbstractCandidateGenerator(metaclass=abc.ABCMeta):
     def getCandidatesForWords(self, words):
 
         with multiprocessing.Pool(multiprocessing.cpu_count()) as pool:
-            return {word: candidates for word, candidates in pool.map(_unwrap_self, zip([self]*len(words), words))}
+            return {
+                word: candidates for word, candidates in pool.map(
+                    functools.partial(spellvardetection.lib.util._unwrap_self, function_name="_AbstractCandidateGenerator__getWordCandidatesPair"),
+                    zip([self]*len(words), words))
+            }
 
 ## Factory for generators
 createCandidateGenerator = spellvardetection.lib.util.createFactory("generator",
