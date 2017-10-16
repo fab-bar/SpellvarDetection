@@ -1,0 +1,21 @@
+#!/usr/bin/env python
+
+import argparse
+import json
+
+parser = argparse.ArgumentParser()
+parser.add_argument('candidates_one')
+parser.add_argument('candidates_two')
+parser.add_argument('candidates_out')
+args = parser.parse_args()
+
+candidates_1 = {word: set(variants) for word, variants in json.load(open(args.candidates_one, 'r')).items()}
+candidates_2 = {word: set(variants) for word, variants in json.load(open(args.candidates_two, 'r')).items()}
+
+candidates_combined = {}
+
+for key in set.union(set(candidates_1.keys()), set(candidates_2.keys())):
+    candidates_combined[key] = set.union(*[gencandidates.get(key, set()) for gencandidates in [candidates_1, candidates_2]])
+
+json.dump({word: list(variants) for word, variants in candidates_combined.items()},
+          open(args.candidates_out, 'w'))
