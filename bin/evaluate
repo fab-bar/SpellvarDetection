@@ -1,0 +1,57 @@
+#!/usr/bin/env python
+
+import argparse
+import json
+import statistics
+
+parser = argparse.ArgumentParser()
+parser.add_argument('gold_file')
+parser.add_argument('prediction_file')
+parser.add_argument('--dict_file')
+args = parser.parse_args()
+
+gold_tokens = json.load(open(args.gold_file, 'r'))
+predictions_type = json.load(open(args.prediction_file, 'r'))
+
+dictionary = set()
+if args.dict_file:
+    dictionary = json.load(open(args.dict_file, 'r'))
+
+tp = 0
+fp = 0
+fn = 0
+
+number_of_candidates = []
+
+for token in gold_tokens:
+    type_text = token['type']
+
+    gold_variants = set(token['variants'])
+    pred_variants = set(predictions_type.get(type_text, []))
+
+    if dictionary:
+        gold_variants = gold_variants.intersection(dictionary)
+        pred_variants = pred_variants.intersection(dictionary)
+
+    tp += len(gold_variants.intersection(pred_variants))
+    fp += len(pred_variants.difference(gold_variants))
+    fn += len(gold_variants.difference(pred_variants))
+
+    number_of_candidates.append(len(pred_variants))
+
+
+precision = tp/(tp + fp) if tp + fp > 0 else 1
+recall = tp/(tp + fn) if tp + fn > 0 else 1
+f1 = 2*(precision * recall)/(precision + recall)
+
+print(" ".join(
+    map(lambda s: str("%.2f" % s),
+        [
+            precision,
+            recall,
+            f1,
+            ## avg number of candidates
+            statistics.mean(number_of_candidates),
+            statistics.stdev(number_of_candidates)
+        ]))
+)
