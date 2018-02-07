@@ -44,14 +44,13 @@ precision = tp/(tp + fp) if tp + fp > 0 else 1
 recall = tp/(tp + fn) if tp + fn > 0 else 1
 f1 = 2*(precision * recall)/(precision + recall)
 
-print(" ".join(
+print("|".join(
     map(lambda s: str("%.2f" % s),
         [
             precision,
             recall,
-            f1,
-            ## avg number of candidates
-            statistics.mean(number_of_candidates),
-            statistics.stdev(number_of_candidates)
-        ]))
-)
+            f1
+        ])) + "|" +
+      # avg number of candidates
+      str("%.2f" % statistics.mean(number_of_candidates)) + '+-' +
+      str("%.2f" % statistics.stdev(number_of_candidates)))
