@@ -8,6 +8,8 @@ parser = argparse.ArgumentParser()
 parser.add_argument('gold_file')
 parser.add_argument('prediction_file')
 parser.add_argument('--dict_file')
+parser.add_argument('--known_file')
+parser.add_argument('--freq_file')
 args = parser.parse_args()
 
 gold_tokens = json.load(open(args.gold_file, 'r'))
@@ -15,7 +17,20 @@ predictions_type = json.load(open(args.prediction_file, 'r'))
 
 dictionary = set()
 if args.dict_file:
-    dictionary = json.load(open(args.dict_file, 'r'))
+    dictionary = set(json.load(open(args.dict_file, 'r')))
+
+known_dict = set()
+if args.known_file:
+    known_dict = set(json.load(open(args.known_file, 'r')))
+
+if args.freq_file:
+    freq_dict = json.load(open(args.freq_file, 'r'))
+    def isFrequent(toktext):
+        freq = freq_dict.get(toktext, 0)
+        return freq > 9
+else:
+    def isFrequent(toktext):
+        return False
 
 tp = 0
 fp = 0
@@ -26,12 +41,24 @@ number_of_candidates = []
 for token in gold_tokens:
     type_text = token['type']
 
+    ## skip known words
+    if type_text in known_dict:
+        continue
+
+    ## skip frequent words
+    if isFrequent(type_text):
+        continue
+
     gold_variants = set(token['variants'])
     pred_variants = set(predictions_type.get(type_text, []))
 
     if dictionary:
         gold_variants = gold_variants.intersection(dictionary)
         pred_variants = pred_variants.intersection(dictionary)
+
+    ## filter frequent spelling variants
+    gold_variants = set([variant for variant in gold_variants if not isFrequent(variant)])
+    pred_variants = set([variant for variant in pred_variants if not isFrequent(variant)])
 
     tp += len(gold_variants.intersection(pred_variants))
     fp += len(pred_variants.difference(gold_variants))
