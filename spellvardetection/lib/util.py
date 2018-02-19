@@ -3,6 +3,8 @@
 import json
 import statistics
 
+import numpy
+
 def load_from_file_if_string(option):
     if isinstance(option, str):
         return json.load(open(option, 'r'))
@@ -28,6 +30,78 @@ def createFactory(factory_type, object_types):
 def _unwrap_self(arg, function_name, **kwarg):
     return getattr(type(arg[0]), function_name)(*arg, **kwarg)
 
+def nw_alignment(type_a, type_b):
+
+    mismatch_cost = 1
+
+    ### initalize cost matrix
+    cost_matrix = numpy.zeros((len(type_a) + 1, len(type_b) + 1), dtype = int)
+
+    for i in range(len(type_a) + 1):
+        cost_matrix[i][0] = i*mismatch_cost
+
+    for i in range(len(type_b) + 1):
+        cost_matrix[0][i] = i*mismatch_cost
+
+    for i in range(1, len(type_a) + 1):
+        for j in range(1, len(type_b) + 1):
+            if type_a[i-1] == type_b[j-1]:
+                align_cost = 0
+            else:
+                align_cost = mismatch_cost
+            cost_matrix[i][j] = min(cost_matrix[i-1][j-1] + align_cost, cost_matrix[i-1][j] + mismatch_cost, cost_matrix[i][j-1] + mismatch_cost)
+
+    ### backtrack
+    alignment = []
+    i,j = len(type_a), len(type_b)
+    while i > 0 and j > 0:
+        if cost_matrix[i][j-1] == cost_matrix[i][j] - mismatch_cost:
+            alignment.append(('-', type_b[j-1]))
+            j -= 1
+        elif cost_matrix[i-1][j] == cost_matrix[i][j] - mismatch_cost:
+            alignment.append((type_a[i-1], '-'))
+            i -= 1
+        elif cost_matrix[i-1][j-1] == cost_matrix[i][j] or cost_matrix[i-1][j-1] == cost_matrix[i][j] - mismatch_cost:
+            alignment.append((type_a[i-1], type_b[j-1]))
+            i -= 1
+            j -= 1
+        else:
+            raise Exception("NW-Alignment: No valid traceback path - Should not happen")
+
+    while i > 0:
+        alignment.append((type_a[i-1], '-'))
+        i -= 1
+    while j > 0:
+        alignment.append(('-', type_b[j-1]))
+        j -= 1
+
+    return reversed(alignment)
+
+def get_alignment(type_a, type_b, directed=False, conflate_id_pairs=False):
+
+    seq_a = seq_b = []
+    if not type_b: # handle empty candidate
+        seq_a = type_a
+        seq_b = "-"*len(type_a)
+    else:
+        ### result of needlemann-wunsch alignment is dependent on the order
+        ### sort by length to avoid this
+        if len(type_a) >= len(type_b):
+            alignment = nw_alignment(type_a, type_b)
+        else:
+            alignment = nw_alignment(type_b, type_a)
+
+    ## Convert alignment into sequence of aligned characters
+    ## when directed=False, it is sorted
+    ## when conflate_id_pairs=True, pairs like (f, f) are mapped to IDD
+    if directed and conflate_id_pairs:
+        return map(lambda x: u''.join(list(x)) if x[0] != x[1] else "IDD", alignment)
+    elif conflate_id_pairs:
+        return map(lambda x: u''.join(sorted(list(x))) if x[0] != x[1] else "IDD", alignemnt)
+    elif directed:
+        return map(lambda x: u''.join(list(x)), alignment)
+    else:
+        return map(lambda x: u''.join(sorted(list(x))), alignment)
 
 def evaluate(tokens, dictionary={}, known_dict={}, freq_dict={}):
 
