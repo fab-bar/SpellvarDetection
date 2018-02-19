@@ -80,6 +80,11 @@ class TestSurfaceExtractor(unittest.TestCase):
             set([('ft',), ('$$', 'ft'), ('ft', 'ee'), ('$$', 'ft', 'ee'), ('ft', 'ee', 'ss')])
         )
 
+        ## now with cache hit
+        self.assertEquals(
+            set(ext.extractFeaturesFromDatapoint(self.data_point)),
+            set([('ft',), ('$$', 'ft'), ('ft', 'ee'), ('$$', 'ft', 'ee'), ('ft', 'ee', 'ss')])
+        )
 
     def test_extract_all_ngrams(self):
 
