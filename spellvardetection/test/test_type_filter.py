@@ -1,7 +1,8 @@
 import unittest
 import json
+import math
 
-from spellvardetection.type_filter import SKLearnClassifierBasedTypeFilter, SurfaceExtractor
+from spellvardetection.type_filter import SKLearnClassifierBasedTypeFilter, SurfaceExtractor, ContextExtractor
 from sklearn.dummy import DummyClassifier
 
 class TestSKLearnClassifierBasedTypeFilter(unittest.TestCase):
@@ -92,3 +93,36 @@ class TestSurfaceExtractor(unittest.TestCase):
             set(ext.extractFeaturesFromDatapoint(self.data_point)),
             set([('$$', 'ft'), ('ft', 'ee')])
         )
+
+
+class TestContextExtractor(unittest.TestCase):
+
+    def setUp(self):
+
+        self.data_point = ('test', 'fest')
+
+    def test_extract_orthogonal_vectors(self):
+
+        ext = ContextExtractor({'test': [0,2], 'fest': [2,0]})
+
+        self.assertEquals(
+            ext.extractFeaturesFromDatapoint(self.data_point),
+            0
+        )
+
+
+    def test_extract_equal_vectors(self):
+
+        ext = ContextExtractor({'test': [2,0], 'fest': [2,0]})
+
+        self.assertEquals(
+            ext.extractFeaturesFromDatapoint(self.data_point),
+            1
+        )
+
+
+    def test_extract_with_missing_vector(self):
+
+        ext = ContextExtractor({'test': [2,0], 'fest': None})
+
+        self.assertTrue(math.isnan(ext.extractFeaturesFromDatapoint(self.data_point)))

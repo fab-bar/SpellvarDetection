@@ -8,6 +8,10 @@ import numpy
 
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.feature_extraction import DictVectorizer
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import Imputer, StandardScaler
+from sklearn.metrics.pairwise import cosine_similarity
+
 
 import spellvardetection.lib.util
 
@@ -121,3 +125,37 @@ class SurfaceExtractor(BaseEstimator, TransformerMixin, FeatureExtractorMixin):
 
         return self.vec.transform(list(map(lambda ngrams: {tuple(key): 1 for key in ngrams},
                                            [self.extractFeaturesFromDatapoint(observation) for observation in data])))
+
+class ContextExtractor(BaseEstimator, TransformerMixin, FeatureExtractorMixin):
+
+    def __init__(self, embeddings):
+
+        self.embeddings = embeddings
+
+    def _featureExtraction(self, data_point):
+
+        word = data_point[0]
+        candidate = data_point[1]
+
+        word_embedd = self.embeddings.get(word)
+        cand_embedd = self.embeddings.get(candidate)
+        if not (word_embedd is None or cand_embedd is None):
+            features = cosine_similarity([word_embedd], [cand_embedd])[0][0]
+        else:
+            features = float('nan')
+
+        return features
+
+    def fit(self, data, y=None):
+
+        self.preprocessing = Pipeline([
+            ('imputer', Imputer(missing_values='NaN', strategy='mean', axis=0)),
+            ('normalizer', StandardScaler())
+        ])
+        self.preprocessing.fit(numpy.array([self.extractFeaturesFromDatapoint(x) for x in data]).reshape(-1, 1))
+
+        return self
+
+    def transform(self, data):
+
+        return self.preprocessing.transform(numpy.array([self.extractFeaturesFromDatapoint(x) for x in data]).reshape(-1, 1))
