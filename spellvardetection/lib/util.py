@@ -52,8 +52,9 @@ def create_factory(type_name, base_cls, create_func=None):
         if object_type not in factory_objects:
             raise ValueError('No candidate ' + type_name + ' of type "' + object_type + '" exists.')
 
-        if not all(name in options for name in factory_objects[object_type][0]):
-            raise ValueError('Missing options for ' + type_name + ' of type ' + object_type)
+        missing_options = [name for name in factory_objects[object_type][0] if name not in options]
+        if missing_options:
+            raise ValueError('Missing options [' + ', '.join(missing_options) + '] for ' + type_name + ' of type ' + object_type)
 
         return factory_objects[object_type][1](options)
 
