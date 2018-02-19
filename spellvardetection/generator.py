@@ -2,7 +2,6 @@
 
 import multiprocessing
 import abc
-import inspect
 import re
 import collections
 import math
@@ -13,22 +12,6 @@ import spellvardetection.lib.util
 
 ### The common interface for candidate generators
 class _AbstractCandidateGenerator(metaclass=abc.ABCMeta):
-
-    _generators = {}
-
-    def __init_subclass__(cls, gen_name=None, **kwargs):
-
-        if not inspect.isabstract(cls) and gen_name is not None:
-            init_sig = inspect.signature(cls.__init__)
-
-            _AbstractCandidateGenerator._generators[gen_name] = (
-                ## get required arguments (those that have no default value)
-                [param.name for param in init_sig.parameters.values() if param.name != 'self' and param.default is inspect.Parameter.empty],
-                ## function to instantiate generator with given options
-                lambda options: globals()[cls.__name__](**options)
-            )
-
-        super().__init_subclass__(**kwargs)
 
     def __getWordCandidatesPair(self, word):
         return (word, self.getCandidatesForWord(word))
@@ -47,8 +30,10 @@ class _AbstractCandidateGenerator(metaclass=abc.ABCMeta):
             }
 
 ### Generators
-class LookupGenerator(_AbstractCandidateGenerator, gen_name='lookup'):
+class LookupGenerator(_AbstractCandidateGenerator):
     """A spelling variant generator based on a simple dictionary lookup"""
+
+    name = 'lookup'
 
     def __init__(self, dictionary):
         self.candidate_dictionary = spellvardetection.lib.util.load_from_file_if_string(dictionary)
@@ -91,7 +76,9 @@ class _AbstractSimplificationGenerator(_AbstractCandidateGenerator):
 
 
 ### A simplification generator with the rules from Koleva et al. 2017 (https://doi.org/10.1075/ijcl.22.1.05kol)
-class GentGMLSimplificationGenerator(_AbstractSimplificationGenerator, gen_name='gent_gml_simplification'):
+class GentGMLSimplificationGenerator(_AbstractSimplificationGenerator):
+
+    name = 'gent_gml_simplification'
 
     def _AbstractSimplificationGenerator__apply_rules(self, word):
 
@@ -126,7 +113,9 @@ class GentGMLSimplificationGenerator(_AbstractSimplificationGenerator, gen_name=
         return last_rule
 
 
-class SimplificationGenerator(_AbstractSimplificationGenerator, gen_name='simplification'):
+class SimplificationGenerator(_AbstractSimplificationGenerator):
+
+    name='simplification'
 
     def _AbstractSimplificationGenerator__apply_rules(self, word):
 
@@ -177,7 +166,9 @@ class _LevenshteinAutomatonGenerator(_AbstractCandidateGenerator):
 
         return cands
 
-class LevenshteinGenerator(_LevenshteinAutomatonGenerator, gen_name='levenshtein'):
+class LevenshteinGenerator(_LevenshteinAutomatonGenerator):
+
+    name = 'levenshtein'
 
     def __init__(self, dictionary, max_dist=2, transposition=False, merge_split=False, repetitions=False):
 
@@ -190,7 +181,9 @@ class LevenshteinGenerator(_LevenshteinAutomatonGenerator, gen_name='levenshtein
         return super()._getCandidatesForWord(word, self.max_dist)
 
 
-class LevenshteinNormalizedGenerator(_LevenshteinAutomatonGenerator, gen_name='levenshtein_normalized'):
+class LevenshteinNormalizedGenerator(_LevenshteinAutomatonGenerator):
+
+    name = 'levenshtein_normalized'
 
     def __init__(self, dictionary, dist_thresh=0.1, no_zero_dist=True, transposition=False, merge_split=False, repetitions=False):
 
@@ -209,4 +202,4 @@ class LevenshteinNormalizedGenerator(_LevenshteinAutomatonGenerator, gen_name='l
 
 
 ## Factory for generators
-createCandidateGenerator = spellvardetection.lib.util.createFactory("generator", _AbstractCandidateGenerator._generators)
+createCandidateGenerator = spellvardetection.lib.util.create_factory("generator", _AbstractCandidateGenerator)
