@@ -6,12 +6,16 @@ from threading import Lock
 
 import numpy
 
-from sklearn.base import BaseEstimator, TransformerMixin
+from sklearn.base import BaseEstimator, TransformerMixin, ClassifierMixin
 from sklearn.feature_extraction import DictVectorizer
-from sklearn.pipeline import Pipeline
+from sklearn.pipeline import Pipeline, FeatureUnion
 from sklearn.preprocessing import Imputer, StandardScaler
 from sklearn.metrics.pairwise import cosine_similarity
+from sklearn.utils.metaestimators import _BaseComposition
+from sklearn.externals import joblib
+from sklearn.svm import SVC
 
+from imblearn.ensemble import BalancedBaggingClassifier
 
 import spellvardetection.lib.embeddings
 import spellvardetection.lib.util
@@ -27,18 +31,20 @@ class _AbstractTypeFilter(metaclass=abc.ABCMeta):
 
         return set([candidate for candidate in candidates if self.isPair(word, candidate)])
 
-class SKLearnClassifierBasedTypeFilter(_AbstractTypeFilter):
+class _AbstractTrainableTypeFilter(_AbstractTypeFilter):
 
-    def __init__(self, classifier):
 
-        self.classifier = classifier
+    @abc.abstractmethod
+    def train(self, positive_pairs, negative_pairs):
+        pass
 
-    def isPair(self, word, candidate):
+    @abc.abstractmethod
+    def load(modelfile_name):
+        pass
 
-        if self.classifier.predict([(word, candidate)]) == 1:
-            return True
-        else:
-            return False
+    @abc.abstractmethod
+    def save(self, modelfile_name):
+        pass
 
 ## Feature extractors
 
@@ -194,3 +200,78 @@ class ContextExtractor(BaseEstimator, TransformerMixin, FeatureExtractorMixin):
 
 ## Factory for generators
 createFeatureExtractor = spellvardetection.lib.util.create_factory("extractor", FeatureExtractorMixin, create_func='create')
+
+
+class SKLearnClassifierBasedTypeFilter(_AbstractTrainableTypeFilter, _BaseComposition, ClassifierMixin):
+
+    def __init__(self, classifier=None, feature_extractors=None):
+
+        if classifier is None:
+            self.classifier = SVC()
+        elif classifier == 'svm':
+            self.classifier = SVC(gamma=0.1, C=2)
+        elif classifier == 'bagging_svm':
+            self.classifier = BalancedBaggingClassifier(
+                base_estimator=SVC(gamma=0.1, C=2),
+                n_estimators=10,
+                bootstrap=False,
+                ratio='majority'
+            )
+        else:
+            self.classifier = classifier
+
+        if feature_extractors is None:
+            self.feature_extractors = [('surface', SurfaceExtractor())]
+        else:
+            self.feature_extractors = feature_extractors
+
+
+    def fit(self, X_data, Y_data=None):
+        self._clf = Pipeline([
+            ('features', FeatureUnion(transformer_list=self.feature_extractors)),
+            ('clf', self.classifier),
+        ])
+        self._clf.fit(X_data, Y_data)
+
+        return self
+
+    def predict(self, X_data):
+        try:
+            getattr(self, "_clf")
+        except AttributeError:
+            raise RuntimeError("Classifier has to be trained!")
+
+        return(self._clf.predict(X_data))
+
+    def get_params(self, deep=True):
+
+        features = self._get_params('feature_extractors', deep=deep)
+        if deep:
+            features = {**features, **{'classifier__' + key: value for key, value in self.classifier.get_params(deep=deep).items()}}
+
+        return features
+
+    def set_params(self, **params):
+
+        self._set_params('feature_extractors', **params)
+
+
+    def train(self, positive_pairs, negative_pairs):
+
+        X = (positive_pairs + negative_pairs)
+        Y = [1]*len(positive_pairs) + [0]*len(negative_pairs)
+
+        self.fit(X, Y)
+
+    def isPair(self, word, candidate):
+
+        if self.predict([(word, candidate)]) == 1:
+            return True
+        else:
+            return False
+
+    def load(modelfile_name):
+        return joblib.load(modelfile_name)
+
+    def save(self, modelfile_name):
+        joblib.dump(self, modelfile_name)

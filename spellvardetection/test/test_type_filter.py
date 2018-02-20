@@ -14,16 +14,16 @@ class TestSKLearnClassifierBasedTypeFilter(unittest.TestCase):
     def test_filter_canidates_none(self):
 
         clf = DummyClassifier(strategy='constant', constant=1)
-        clf.fit([('a', 'b')], [1])
         filter = SKLearnClassifierBasedTypeFilter(clf)
+        filter.fit([('a', 'b')], [1])
         self.assertEquals(filter.filterCandidates(self.word, self.candidates), self.candidates)
 
 
     def test_filter_canidates_all(self):
 
         clf = DummyClassifier(strategy='constant', constant=0)
-        clf.fit([('a', 'b')], [0])
         filter = SKLearnClassifierBasedTypeFilter(clf)
+        filter.fit([('a', 'b')], [0])
         self.assertEquals(filter.filterCandidates(self.word, self.candidates), set([]))
 
 class TestSurfaceExtractor(unittest.TestCase):
