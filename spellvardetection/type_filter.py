@@ -52,6 +52,20 @@ class FeatureExtractorMixin(metaclass=abc.ABCMeta):
 
     lock = Lock()
 
+    ## prevent cache from being pickled
+    ## subclasses can provide __getstate__ to override this behaviour
+    def __getstate__(self):
+
+        pickle_dict = dict(self.__dict__)
+        del pickle_dict['feature_cache']
+        return pickle_dict
+
+    def __init_subclass__(cls, **kwargs):
+
+        if not hasattr(cls, '__getstate__'):
+            setattr(cls, '__getstate__', FeatureExtractorMixin.__getstate__)
+
+
     @abc.abstractmethod
     def create(**options):
         pass

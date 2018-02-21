@@ -86,6 +86,16 @@ class TestSurfaceExtractor(unittest.TestCase):
             set([('ft',), ('$$', 'ft'), ('ft', 'ee'), ('$$', 'ft', 'ee'), ('ft', 'ee', 'ss')])
         )
 
+    def test_feature_extractor_pickle(self):
+
+        ext = SurfaceExtractor()
+
+        ext.setFeatureCache({
+            ext._getDataKey(self.data_point): {'ngrams': 'a'}
+        }, 'ngrams')
+
+        self.assertTrue('feature_cache' not in ext.__getstate__())
+
     def test_extract_all_ngrams(self):
 
         ext = SurfaceExtractor(only_mismatch_ngrams=False)
