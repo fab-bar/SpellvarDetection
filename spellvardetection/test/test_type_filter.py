@@ -1,5 +1,4 @@
 import unittest
-import json
 import math
 
 from spellvardetection.type_filter import SKLearnClassifierBasedTypeFilter, SurfaceExtractor, ContextExtractor
@@ -40,7 +39,7 @@ class TestSurfaceExtractor(unittest.TestCase):
 
         ## test cache hit
         ext.setFeatureCache({
-            json.dumps(tuple(sorted(self.data_point))): 'a'
+            ext._getDataKey(self.data_point): 'a'
         })
 
         self.assertEquals(
@@ -56,7 +55,7 @@ class TestSurfaceExtractor(unittest.TestCase):
         )
         self.assertEquals(
             {key: set(value) for key,value in ext.feature_cache.items()},
-            {json.dumps(tuple(sorted(self.data_point))):
+            {ext._getDataKey(self.data_point):
             set([('ft',), ('$$', 'ft'), ('ft', 'ee'), ('$$', 'ft', 'ee'), ('ft', 'ee', 'ss')])}
         )
 
@@ -66,7 +65,7 @@ class TestSurfaceExtractor(unittest.TestCase):
 
         ## test cache hit
         ext.setFeatureCache({
-            json.dumps(tuple(sorted(self.data_point))): {'ngrams': 'a'}
+            ext._getDataKey(self.data_point): {'ngrams': 'a'}
         }, 'ngrams')
 
         self.assertEquals(

@@ -43,6 +43,8 @@ class FeatureExtractorMixin(metaclass=abc.ABCMeta):
 
     lock = Lock()
 
+    def _getDataKey(self, datapoint):
+        return json.dumps(tuple(sorted(datapoint)))
 
     @abc.abstractmethod
     def _featureExtraction(self, datapoint):
@@ -53,8 +55,8 @@ class FeatureExtractorMixin(metaclass=abc.ABCMeta):
         ## query cache
         with FeatureExtractorMixin.lock:
             if hasattr(self, 'feature_cache'):
-                if json.dumps(tuple(sorted(datapoint))) in self.feature_cache:
-                    features = self.feature_cache[json.dumps(tuple(sorted(datapoint)))]
+                if self._getDataKey(datapoint) in self.feature_cache:
+                    features = self.feature_cache[self._getDataKey(datapoint)]
                     if self.key is not None:
                         features = features.get(self.key, None)
                     if features is not None:
@@ -67,11 +69,11 @@ class FeatureExtractorMixin(metaclass=abc.ABCMeta):
             if hasattr(self, 'feature_cache'):
 
                 if self.key is None:
-                    self.feature_cache[json.dumps(tuple(sorted(datapoint)))] = features
+                    self.feature_cache[self._getDataKey(datapoint)] = features
                 else:
-                    if json.dumps(tuple(sorted(datapoint))) not in self.feature_cache:
-                        self.feature_cache[json.dumps(tuple(sorted(datapoint)))] = dict()
-                    self.feature_cache[json.dumps(tuple(sorted(datapoint)))][self.key] = features
+                    if self._getDataKey(datapoint) not in self.feature_cache:
+                        self.feature_cache[self._getDataKey(datapoint)] = dict()
+                    self.feature_cache[self._getDataKey(datapoint)][self.key] = features
 
         return features
 
