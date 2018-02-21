@@ -2,6 +2,7 @@
 
 import abc
 import json
+import importlib
 from threading import Lock
 
 import numpy
@@ -218,19 +219,43 @@ createFeatureExtractor = spellvardetection.lib.util.create_factory("extractor", 
 
 class SKLearnClassifierBasedTypeFilter(_AbstractTrainableTypeFilter, _BaseComposition, ClassifierMixin):
 
-    def __init__(self, classifier=None, feature_extractors=None):
+    def create(classifier_clsname, feature_extractors, classifier_params=None):
 
-        if classifier is None:
-            self.classifier = SVC()
-        elif classifier == 'svm':
-            self.classifier = SVC(gamma=0.1, C=2)
-        elif classifier == 'bagging_svm':
-            self.classifier = BalancedBaggingClassifier(
+        ## instantiate classifier
+        if classifier_clsname == '__svm__':
+            classifier = SVC(gamma=0.1, C=2)
+        elif classifier_clsname == '__bagging_svm__':
+            classifier = BalancedBaggingClassifier(
                 base_estimator=SVC(gamma=0.1, C=2),
                 n_estimators=10,
                 bootstrap=False,
                 ratio='majority'
             )
+        elif '.' in classifier_clsname:
+            module_name, cls_name = classifier_clsname.rsplit('.', 1)
+            module = importlib.import_module(module_name)
+            classifier = getattr(module, cls_name)()
+        else:
+            classifier = globals()[classifier_clsname]()
+
+        if classifier_params is not None:
+            classifier.set_params(**classifier_params)
+
+        ## instantiate feature extractors
+        extractors = []
+        for extractor in feature_extractors:
+            extractor_object = createFeatureExtractor(extractor['type'], extractor.get('options', {}))
+            if 'cache' in extractor:
+                extractor_object.setFeatureCache(extractor['cache'], key=extractor.get('key', None))
+            extractors.append((extractor['name'], extractor_object))
+
+        return SKLearnClassifierBasedTypeFilter(classifier, extractors)
+
+
+    def __init__(self, classifier=None, feature_extractors=None):
+
+        if classifier is None:
+            self.classifier = SVC()
         else:
             self.classifier = classifier
 
