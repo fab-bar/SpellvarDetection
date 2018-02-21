@@ -54,7 +54,11 @@ class FeatureExtractorMixin(metaclass=abc.ABCMeta):
         with FeatureExtractorMixin.lock:
             if hasattr(self, 'feature_cache'):
                 if json.dumps(tuple(sorted(datapoint))) in self.feature_cache:
-                    return self.feature_cache[json.dumps(tuple(sorted(datapoint)))]
+                    features = self.feature_cache[json.dumps(tuple(sorted(datapoint)))]
+                    if self.key is not None:
+                        features = features.get(self.key, None)
+                    if features is not None:
+                        return features
 
         features = self._featureExtraction(datapoint)
 
@@ -62,7 +66,12 @@ class FeatureExtractorMixin(metaclass=abc.ABCMeta):
         with FeatureExtractorMixin.lock:
             if hasattr(self, 'feature_cache'):
 
-                self.feature_cache[json.dumps(tuple(sorted(datapoint)))] = features
+                if self.key is None:
+                    self.feature_cache[json.dumps(tuple(sorted(datapoint)))] = features
+                else:
+                    if json.dumps(tuple(sorted(datapoint))) not in self.feature_cache:
+                        self.feature_cache[json.dumps(tuple(sorted(datapoint)))] = dict()
+                    self.feature_cache[json.dumps(tuple(sorted(datapoint)))][self.key] = features
 
         return features
 
@@ -70,12 +79,14 @@ class FeatureExtractorMixin(metaclass=abc.ABCMeta):
 
         return [self.extractFeaturesFromDatapoint(datapoint) for datapoint in data]
 
-    def setFeatureCache(self, feature_cache=None):
+    def setFeatureCache(self, feature_cache=None, key=None):
 
         if feature_cache is None:
             self.feature_cache = dict()
         else:
             self.feature_cache = spellvardetection.lib.util.load_from_file_if_string(feature_cache)
+
+        self.key = key
 
 
 class SurfaceExtractor(BaseEstimator, TransformerMixin, FeatureExtractorMixin):

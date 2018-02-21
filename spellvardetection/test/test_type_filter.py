@@ -48,8 +48,34 @@ class TestSurfaceExtractor(unittest.TestCase):
             'a'
         )
 
-        ## test empy cache
+        ## test empty cache
         ext.setFeatureCache()
+        self.assertEquals(
+            set(ext.extractFeaturesFromDatapoint(self.data_point)),
+            set([('ft',), ('$$', 'ft'), ('ft', 'ee'), ('$$', 'ft', 'ee'), ('ft', 'ee', 'ss')])
+        )
+        self.assertEquals(
+            {key: set(value) for key,value in ext.feature_cache.items()},
+            {json.dumps(tuple(sorted(self.data_point))):
+            set([('ft',), ('$$', 'ft'), ('ft', 'ee'), ('$$', 'ft', 'ee'), ('ft', 'ee', 'ss')])}
+        )
+
+    def test_feature_extractor_cache_with_key(self):
+
+        ext = SurfaceExtractor()
+
+        ## test cache hit
+        ext.setFeatureCache({
+            json.dumps(tuple(sorted(self.data_point))): {'ngrams': 'a'}
+        }, 'ngrams')
+
+        self.assertEquals(
+            ext.extractFeaturesFromDatapoint(self.data_point),
+            'a'
+        )
+
+        ## test empty cache
+        ext.setFeatureCache(key='ngrams')
         self.assertEquals(
             set(ext.extractFeaturesFromDatapoint(self.data_point)),
             set([('ft',), ('$$', 'ft'), ('ft', 'ee'), ('$$', 'ft', 'ee'), ('ft', 'ee', 'ss')])
