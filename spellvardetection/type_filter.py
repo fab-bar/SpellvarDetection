@@ -13,6 +13,7 @@ from sklearn.preprocessing import Imputer, StandardScaler
 from sklearn.metrics.pairwise import cosine_similarity
 
 
+import spellvardetection.lib.embeddings
 import spellvardetection.lib.util
 
 
@@ -39,9 +40,15 @@ class SKLearnClassifierBasedTypeFilter(_AbstractTypeFilter):
         else:
             return False
 
+## Feature extractors
+
 class FeatureExtractorMixin(metaclass=abc.ABCMeta):
 
     lock = Lock()
+
+    @abc.abstractmethod
+    def create(**options):
+        pass
 
     def _getDataKey(self, datapoint):
         return json.dumps(tuple(sorted(datapoint)))
@@ -93,6 +100,11 @@ class FeatureExtractorMixin(metaclass=abc.ABCMeta):
 
 class SurfaceExtractor(BaseEstimator, TransformerMixin, FeatureExtractorMixin):
 
+    name = "surface"
+
+    def create(min_ngram_size=1, max_ngram_size=3, only_mismatch_ngrams=True, padding_char="$"):
+        return SurfaceExtractor(min_ngram_size, max_ngram_size, only_mismatch_ngrams, padding_char)
+
     def __init__(self, min_ngram_size=1, max_ngram_size=3, only_mismatch_ngrams=True, padding_char="$"):
 
         self.padding_char = padding_char
@@ -141,6 +153,13 @@ class SurfaceExtractor(BaseEstimator, TransformerMixin, FeatureExtractorMixin):
 
 class ContextExtractor(BaseEstimator, TransformerMixin, FeatureExtractorMixin):
 
+    name = 'context'
+
+    def create(vector_type, vectorfile_name, simplfile_name=None, missing_words=None):
+
+        embeddings = spellvardetection.lib.embeddings.WordEmbeddings(vector_type, vectorfile_name, simplfile_name, missing_words)
+        return ContextExtractor(embeddings)
+
     def __init__(self, embeddings):
 
         self.embeddings = embeddings
@@ -172,3 +191,6 @@ class ContextExtractor(BaseEstimator, TransformerMixin, FeatureExtractorMixin):
     def transform(self, data):
 
         return self.preprocessing.transform(numpy.array([self.extractFeaturesFromDatapoint(x) for x in data]).reshape(-1, 1))
+
+## Factory for generators
+createFeatureExtractor = spellvardetection.lib.util.create_factory("extractor", FeatureExtractorMixin, create_func='create')
