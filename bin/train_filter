@@ -1,0 +1,43 @@
+#!/usr/bin/env python
+
+import argparse
+import json
+
+from spellvardetection.type_filter import createFeatureExtractor
+from spellvardetection.type_filter import SKLearnClassifierBasedTypeFilter
+
+parser = argparse.ArgumentParser()
+parser.add_argument('classifier')
+parser.add_argument('feature_extractors')
+parser.add_argument('modelfile_name')
+parser.add_argument('positive_pairs')
+parser.add_argument('negative_pairs')
+
+parser.add_argument('-p', '--classifier_params', nargs='?')
+parser.add_argument('-c', '--feature_cache', nargs='?')
+args = parser.parse_args()
+
+positive_pairs = json.load(open(args.positive_pairs, 'r'))
+negative_pairs = json.load(open(args.negative_pairs, 'r'))
+
+feature_extractors = json.loads(args.feature_extractors)
+
+if args.feature_cache is not None:
+    feature_cache = json.load(open(args.feature_cache, 'r'))
+    for feature_extractor in feature_extractors:
+        if 'key' in feature_extractor:
+            feature_extractor['cache'] = feature_cache
+
+if args.classifier_params is not None:
+    cand_filter = SKLearnClassifierBasedTypeFilter.create(
+        args.classifier,
+        feature_extractors,
+        json.loads(args.classifier_params)
+    )
+else:
+    cand_filter = SKLearnClassifierBasedTypeFilter.create(
+        args.classifier,
+        feature_extractors
+    )
+cand_filter.train(positive_pairs, negative_pairs)
+cand_filter.save(args.modelfile_name)
