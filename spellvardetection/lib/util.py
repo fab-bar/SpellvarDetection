@@ -167,3 +167,21 @@ def getTrueAndFalsePairs(spellvardict, generator, max_processes=None):
     false_pairs = cand_pairs.difference(true_pairs)
 
     return true_pairs, false_pairs
+
+def get_positive_and_negative_pairs_with_context(tokens, spellvardict):
+
+    positive_pairs = []
+    negative_pairs = []
+
+    for token in tokens:
+        for candidate in spellvardict.get(token['type'], []):
+            example = (
+                token['type'], candidate, token['left_context'], token['right_context']
+            )
+            if candidate in token['variants']:
+                positive_pairs.append(example)
+            else:
+                negative_pairs.append(example)
+
+    return (positive_pairs, negative_pairs)
+

@@ -121,3 +121,28 @@ class TestEvaluate(unittest.TestCase):
             false_pairs,
             set([('a', 'b'), ('b', 'c')])
         )
+
+
+class TestPairsWithContext(unittest.TestCase):
+
+    def test_get_positive_and_negative_pairs_with_context(self):
+
+
+        tokens = [
+            { 'type': 'a', 'variants': [], 'left_context': [], 'right_context': ['short', 'example', 'for', 'testing']},
+            { 'type': 'short', 'variants': ['shoort'], 'left_context': ['a'], 'right_context': ['example', 'for', 'testing']},
+            { 'type': 'example', 'variants': ['exaample', 'exmple'], 'left_context': ['a', 'short'], 'right_context': ['for', 'testing']},
+            { 'type': 'for', 'variants': ['4'], 'left_context': ['a', 'short', 'example'], 'right_context': ['testing']},
+            { 'type': 'testing', 'variants': ['tstin'], 'left_context': ['a', 'short', 'example', 'for'], 'right_context': []},
+        ]
+
+        spellvardict = {
+            'short': ['shoort', 'shrt'],
+            'example': ['exaample', 'exmple'],
+        }
+
+        positive_pairs, negative_pairs = get_positive_and_negative_pairs_with_context(tokens, spellvardict)
+
+        ## numbers of examples
+        self.assertEquals(3, len(positive_pairs))
+        self.assertEquals(1, len(negative_pairs))
