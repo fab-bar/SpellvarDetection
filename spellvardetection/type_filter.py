@@ -58,7 +58,8 @@ class FeatureExtractorMixin(metaclass=abc.ABCMeta):
     def __getstate__(self):
 
         pickle_dict = dict(self.__dict__)
-        del pickle_dict['feature_cache']
+        if 'feature_cache' in pickle_dict:
+            del pickle_dict['feature_cache']
         return pickle_dict
 
     def __init_subclass__(cls, **kwargs):
