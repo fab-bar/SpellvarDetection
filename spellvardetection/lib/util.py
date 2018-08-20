@@ -26,13 +26,13 @@ def create_factory(type_name, base_cls, create_func=None):
 
         name = getattr(cls, 'name', None)
         if not inspect.isabstract(cls) and name is not None:
-            if create_func is None:
+            if not (create_func is not None and hasattr(cls, create_func)):
                 init_sig = inspect.signature(cls.__init__)
             else:
                 init_sig = inspect.signature(getattr(cls, create_func))
 
             def object_initializer(cls):
-                if create_func is not None:
+                if create_func is not None and hasattr(cls, create_func):
                     return lambda options: getattr(cls, create_func)(**options)
                 else:
                     return lambda options: cls(**options)
