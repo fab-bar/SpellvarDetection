@@ -10,6 +10,8 @@ import functools
 from spellvardetection.lib.lev_aut import DictAutomaton
 import spellvardetection.lib.util
 
+from spellvardetection.util.feature_extractor import createFeatureExtractor
+
 ### The common interface for candidate generators
 class _AbstractCandidateGenerator(metaclass=abc.ABCMeta):
 
@@ -201,5 +203,64 @@ class LevenshteinNormalizedGenerator(_LevenshteinAutomatonGenerator):
         return super()._getCandidatesForWord(word, dist)
 
 
+class _SetsimilarityGenerator(_AbstractCandidateGenerator):
+
+    def __init__(self, featureset_extractor, dictionary, sim_thresh=0.2):
+
+        self.featureset_extractor = featureset_extractor
+
+        self.dictionary = spellvardetection.lib.util.load_from_file_if_string(dictionary)
+        self.sim_thresh = sim_thresh
+
+        self.feature_known = {}
+        for k_type in self.dictionary:
+            k_feat = self.featureset_extractor.extractFeaturesFromDatapoint(k_type)
+            for feat in k_feat:
+                if feat not in self.feature_known:
+                    self.feature_known[feat] = []
+                self.feature_known[feat].append(k_type)
+
+    @abc.abstractmethod
+    def getSetsim(self, seta, setb):
+        pass
+
+    def getCandidatesForWord(self, texttype):
+
+        texttype_feat = self.featureset_extractor.extractFeaturesFromDatapoint(texttype)
+        sim_cands = set()
+        for feat in texttype_feat:
+            if feat in self.feature_known:
+                sim_cands.update(self.feature_known[feat])
+
+        return set([cand for cand in sim_cands if (cand != texttype) and (
+            self.getSetsim(
+                self.featureset_extractor.extractFeaturesFromDatapoint(texttype),
+                self.featureset_extractor.extractFeaturesFromDatapoint(cand)
+            ) >= self.sim_thresh)])
+
+
+class ProxinetteGenerator(_SetsimilarityGenerator):
+
+    name = 'proxinette'
+
+    def create(dictionary, sim_thresh=0.01,
+               feature_extractor="ngram", feature_extractor_options={
+                   'min_ngram_size': 3, 'max_ngram_size': float('inf'),
+                   'skip_size': 0, 'gap': '',
+                   'bow': "$", 'eow': "$"
+               }):
+
+        return ProxinetteGenerator(
+            createFeatureExtractor(feature_extractor, feature_extractor_options),
+            dictionary, sim_thresh)
+
+
+    def getSetsim(self, seta, setb):
+
+        intersection = set.intersection(seta, setb)
+        intersection_weightedsum = sum([1/float(len(self.feature_known[feat])) for feat in intersection])
+        seta_cardinality = len(seta)
+        return intersection_weightedsum/float(seta_cardinality)
+
 ## Factory for generators
-createCandidateGenerator = spellvardetection.lib.util.create_factory("generator", _AbstractCandidateGenerator)
+createCandidateGenerator = spellvardetection.lib.util.create_factory("generator", _AbstractCandidateGenerator, create_func='create')

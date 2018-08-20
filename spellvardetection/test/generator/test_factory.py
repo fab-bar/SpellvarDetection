@@ -55,3 +55,11 @@ class TestGeneratorFactory(unittest.TestCase):
                                                                  {'dictionary': ['cat']}),
             spellvardetection.generator.LevenshteinNormalizedGenerator
         )
+
+    def test_factory_for_proxinette_generator(self):
+
+        self.assertIsInstance(
+            spellvardetection.generator.createCandidateGenerator("proxinette",
+                                                                 {'dictionary': ['cat']}),
+            spellvardetection.generator.ProxinetteGenerator
+        )
