@@ -1,7 +1,7 @@
 import unittest
 import math
 
-from spellvardetection.util.feature_extractor import SurfaceExtractor, ContextExtractor
+from spellvardetection.util.feature_extractor import SurfaceExtractor, ContextExtractor, NGramExtractor
 
 class TestSurfaceExtractor(unittest.TestCase):
 
@@ -144,3 +144,184 @@ class TestContextExtractor(unittest.TestCase):
 
         self.assertTrue(math.isnan(ext.extractFeaturesFromDatapoint(self.data_point)))
 
+
+class TestNGramExtractor(unittest.TestCase):
+
+    def setUp(self):
+
+        self.data_point = ('insurgents', 'killed', 'in', 'ongoing', 'fighting')
+
+    def test_padding_sequence(self):
+
+        ext = NGramExtractor(min_ngram_size=2, max_ngram_size=2, skip_size=0, bow='<BOS>', eow='<EOS>', pad_ngrams=False)
+
+        self.assertEquals(
+            ext.extractFeaturesFromDatapoint(self.data_point),
+            set([
+                ('<BOS>', 'insurgents'),
+                ('insurgents', 'killed'),
+                ('killed', 'in'),
+                ('in', 'ongoing'),
+                ('ongoing', 'fighting'),
+                ('fighting', '<EOS>')
+            ])
+        )
+
+    def test_padding_ngrams(self):
+
+        ext = NGramExtractor(min_ngram_size=2, max_ngram_size=2, skip_size=0, bow='<BOS>', eow='<EOS>', pad_ngrams=True)
+
+        self.assertEquals(
+            ext.extractFeaturesFromDatapoint(self.data_point),
+            set([
+                ('<BOS>insurgents', 'killed'),
+                ('killed', 'in'),
+                ('in', 'ongoing'),
+                ('ongoing', 'fighting<EOS>'),
+            ])
+        )
+
+    def test_extract_bi_grams(self):
+
+        ext = NGramExtractor(min_ngram_size=2, max_ngram_size=2, skip_size=0, bow='', eow='')
+
+        self.assertEquals(
+            ext.extractFeaturesFromDatapoint(self.data_point),
+            set([
+                ('insurgents', 'killed'),
+                ('killed', 'in'),
+                ('in', 'ongoing'),
+                ('ongoing', 'fighting'),
+            ])
+        )
+
+    def test_extract_2_skip_bi_grams(self):
+
+        ext = NGramExtractor(min_ngram_size=2, max_ngram_size=2, skip_size=2, gap='', bow='', eow='')
+
+        self.assertEquals(
+            ext.extractFeaturesFromDatapoint(self.data_point),
+            set([
+                ('insurgents', 'killed'),
+                ('insurgents', 'in'),
+                ('insurgents', 'ongoing'),
+                ('killed', 'in'),
+                ('killed', 'ongoing'),
+                ('killed', 'fighting'),
+                ('in', 'ongoing'),
+                ('in', 'fighting'),
+                ('ongoing', 'fighting'),
+            ])
+        )
+
+    def test_extract_tri_grams(self):
+
+        ext = NGramExtractor(min_ngram_size=3, max_ngram_size=3, skip_size=0, bow='', eow='')
+
+        self.assertEquals(
+            ext.extractFeaturesFromDatapoint(self.data_point),
+            set([
+                ('insurgents', 'killed', 'in'),
+                ('killed', 'in', 'ongoing'),
+                ('in', 'ongoing', 'fighting')
+            ])
+        )
+
+    def test_extract_2_skip_tri_grams(self):
+
+        ext = NGramExtractor(min_ngram_size=3, max_ngram_size=3, skip_size=2, gap='', bow='', eow='')
+
+        self.assertEquals(
+            ext.extractFeaturesFromDatapoint(self.data_point),
+            set([
+                ('insurgents', 'killed', 'in'),
+                ('insurgents', 'killed', 'ongoing'),
+                ('insurgents', 'killed', 'fighting'),
+                ('insurgents', 'in', 'ongoing'),
+                ('insurgents', 'in', 'fighting'),
+                ('insurgents', 'ongoing', 'fighting'),
+                ('killed', 'in', 'ongoing'),
+                ('killed', 'in', 'fighting'),
+                ('killed', 'ongoing', 'fighting'),
+                ('in', 'ongoing', 'fighting')
+            ])
+        )
+
+    def test_extract_1_skip_bi_grams_with_gap_and_ngrampadding_love(self):
+
+        ext = NGramExtractor(min_ngram_size=2, max_ngram_size=2, skip_size=1, gap='|', bow='$', eow='$', pad_ngrams=True)
+
+        self.assertEquals(
+            ext.extractFeaturesFromDatapoint('love'),
+            set([
+                ('$l', 'o'),
+                ('o', 'v'),
+                ('v', 'e$'),
+                ('l', '|', 'v'),
+                ('o', '|', 'e')
+            ])
+        )
+
+    def test_extract_1_skip_bi_grams_with_gap_and_ngrampadding_looove(self):
+
+        ext = NGramExtractor(min_ngram_size=2, max_ngram_size=2, skip_size=1, gap='|', bow='$', eow='$', pad_ngrams=True)
+
+        self.assertEquals(
+            ext.extractFeaturesFromDatapoint('looove'),
+            set([
+                ('$l', 'o'),
+                ('o', 'o'),
+                ('o', 'v'),
+                ('v', 'e$'),
+                ('l', '|', 'o'),
+                ('o', '|', 'o'),
+                ('o', '|', 'v'),
+                ('o', '|', 'e')
+            ])
+        )
+
+    def test_extract_1_skip_bi_grams_with_gap_and_ngrampadding_car(self):
+
+        ext = NGramExtractor(min_ngram_size=2, max_ngram_size=2, skip_size=1, gap='|', bow='$', eow='$', pad_ngrams=True)
+
+        self.assertEquals(
+            ext.extractFeaturesFromDatapoint('car'),
+            set([
+                ('$c', 'a'),
+                ('a', 'r$'),
+                ('c', '|', 'r')
+            ])
+        )
+
+    def test_extract_1_skip_bi_grams_with_gap_and_ngrampadding_cat(self):
+
+        ext = NGramExtractor(min_ngram_size=2, max_ngram_size=2, skip_size=1, gap='|', bow='$', eow='$', pad_ngrams=True)
+
+        self.assertEquals(
+            ext.extractFeaturesFromDatapoint('cat'),
+            set([
+                ('$c', 'a'),
+                ('a', 't$'),
+                ('c', '|', 't'),
+            ])
+        )
+
+    def test_extract_all_ngrams(self):
+
+        ext = NGramExtractor(min_ngram_size=3, max_ngram_size=float('inf'), skip_size=0, gap='', bow='', eow='')
+
+        self.assertEquals(
+            ext.extractFeaturesFromDatapoint('#comparable#'),
+            set([
+                tuple('#comparable#'),
+                tuple('#comparable'), tuple('comparable#'),
+                tuple('#comparabl'), tuple('comparable'), tuple('omparable#'),
+                tuple('#comparab'), tuple('comparabl'), tuple('omparable'), tuple('mparable#'),
+                tuple('#compara'), tuple('comparab'), tuple('omparabl'), tuple('mparable'), tuple('parable#'),
+                tuple('#compar'), tuple('compara'), tuple('omparab'), tuple('mparabl'), tuple('parable'), tuple('arable#'),
+                tuple('#compa'), tuple('compar'), tuple('ompara'), tuple('mparab'), tuple('parabl'), tuple('arable'), tuple('rable#'),
+                tuple('#comp'), tuple('compa'), tuple('ompar'), tuple('mpara'), tuple('parab'), tuple('arabl'), tuple('rable'), tuple('able#'),
+                tuple('#com'), tuple('comp'), tuple('ompa'), tuple('mpar'), tuple('para'), tuple('arab'), tuple('rabl'), tuple('able'), tuple('ble#'),
+                tuple('#co'), tuple('com'), tuple('omp'), tuple('mpa'), tuple('par'), tuple('ara'), tuple('rab'), tuple('abl'), tuple('ble'), tuple('le#')
+            ])
+        )

@@ -87,6 +87,58 @@ class FeatureExtractorMixin(metaclass=abc.ABCMeta):
 
         self.key = key
 
+class NGramExtractor(FeatureExtractorMixin):
+
+    name = "ngram"
+
+    def create(min_ngram_size=2, max_ngram_size=float('inf'), skip_size=0, gap="|", bow="$", eow="$", pad_ngrams=False):
+        return NGramExtractor(min_ngram_size, max_ngram_size, skip_size, gap, bow, eow)
+
+    def __init__(self, min_ngram_size=2, max_ngram_size=float('inf'), skip_size=0, gap="|", bow="$", eow="$", pad_ngrams=False):
+
+        self.min_ngram_size = min_ngram_size
+        self.max_ngram_size = max_ngram_size
+        self.skip_size = skip_size
+        self.gap = gap
+        self.bow = bow
+        self.eow = eow
+        self.pad_ngrams = pad_ngrams
+
+    # http://locallyoptimal.com/blog/2013/01/20/elegant-n-gram-generation-in-python/
+    def _find_ngrams(self, input_list, n):
+        return zip(*[input_list[i:] for i in range(n)])
+
+    def _featureExtraction(self, datapoint):
+
+        padded_datapoint = list(datapoint)
+        if self.bow or self.eow:
+            if self.bow:
+                if self.pad_ngrams:
+                    padded_datapoint[0] = self.bow + padded_datapoint[0]
+                else:
+                    padded_datapoint = [self.bow] + padded_datapoint
+            if self.eow:
+                if self.pad_ngrams:
+                    padded_datapoint[-1] = padded_datapoint[-1] + self.eow
+                else:
+                    padded_datapoint = padded_datapoint + [self.eow]
+
+        ngrams = set()
+        for i in range(self.min_ngram_size, min(len(datapoint),self.max_ngram_size)+1):
+            ngrams.update(list(self._find_ngrams(padded_datapoint, i)))
+            ### add skip grams for the given size
+            for skip in range(1, min(self.skip_size, len(datapoint) - i) + 1):
+                ngrams_for_skipgrams = list(self._find_ngrams(datapoint, i + skip))
+                ### get all combinations of (i-2) times True and skip times False
+                for skip_vector in set(list(itertools.permutations([False]*skip + [True]*(i-2)))):
+                    skip_vector = [True] + list(skip_vector) + [True]
+                    if self.gap:
+                        skipgrams = [tuple([char if skip_vector[position] else self.gap for position, char in enumerate(ngram)]) for ngram in ngrams_for_skipgrams]
+                    else:
+                        skipgrams = [tuple([char for position, char in enumerate(ngram) if skip_vector[position]]) for ngram in ngrams_for_skipgrams]
+                    ngrams.update(skipgrams)
+
+        return ngrams
 
 class SurfaceExtractor(BaseEstimator, TransformerMixin, FeatureExtractorMixin):
 
@@ -97,15 +149,10 @@ class SurfaceExtractor(BaseEstimator, TransformerMixin, FeatureExtractorMixin):
 
     def __init__(self, min_ngram_size=1, max_ngram_size=3, only_mismatch_ngrams=True, padding_char="$"):
 
+        self.ngram_extractor = NGramExtractor(min_ngram_size, max_ngram_size, skip_size=0,
+                                              bow='', eow='')
         self.padding_char = padding_char
-        self.min_ngram_size = min_ngram_size
-        self.max_ngram_size = max_ngram_size
         self.only_mismatch_ngrams = only_mismatch_ngrams
-
-    # http://locallyoptimal.com/blog/2013/01/20/elegant-n-gram-generation-in-python/
-    def _find_ngrams(self, input_list, n):
-        return zip(*[input_list[i:] for i in range(n)])
-
 
     def _featureExtraction(self, data_point):
 
@@ -116,10 +163,7 @@ class SurfaceExtractor(BaseEstimator, TransformerMixin, FeatureExtractorMixin):
         alignment = list(spellvardetection.lib.util.get_alignment(self.padding_char + word + self.padding_char,
                                              self.padding_char + candidate + self.padding_char))
         ## get ngrams from alignment (size is option)
-        ngrams = set()
-        for i in range(self.min_ngram_size, self.max_ngram_size+1):
-            ngrams.update(list(self._find_ngrams(alignment, i)))
-        ngrams = list(ngrams)
+        ngrams = list(self.ngram_extractor.extractFeaturesFromDatapoint(alignment))
 
         ## only alignment from mismatch
         if self.only_mismatch_ngrams:
