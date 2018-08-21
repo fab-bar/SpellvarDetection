@@ -12,6 +12,7 @@ from sklearn.svm import SVC
 from imblearn.ensemble import BalancedBaggingClassifier
 
 from spellvardetection.util.feature_extractor import createFeatureExtractor, SurfaceExtractor
+import spellvardetection.lib.util
 
 
 class _AbstractTypeFilter(metaclass=abc.ABCMeta):
@@ -42,7 +43,13 @@ class _AbstractTrainableTypeFilter(_AbstractTypeFilter):
 
 class SKLearnClassifierBasedTypeFilter(_AbstractTrainableTypeFilter, _BaseComposition, ClassifierMixin):
 
-    def create(classifier_clsname, feature_extractors, classifier_params=None):
+    name = 'sklearn'
+
+    def create(modelfile_name):
+        return SKLearnClassifierBasedTypeFilter.load(modelfile_name)
+
+
+    def create_for_training(classifier_clsname, feature_extractors, classifier_params=None):
 
         ## instantiate classifier
         if classifier_clsname == '__svm__':
@@ -137,3 +144,8 @@ class SKLearnClassifierBasedTypeFilter(_AbstractTrainableTypeFilter, _BaseCompos
 
     def save(self, modelfile_name):
         joblib.dump(self, modelfile_name)
+
+
+## Factory for filters
+createTrainableTypeFilter = spellvardetection.lib.util.create_factory("trainable_type_filter", _AbstractTrainableTypeFilter, create_func='create_for_training')
+createTypeFilter = spellvardetection.lib.util.create_factory("type_filter", _AbstractTypeFilter, create_func='create')

@@ -30,25 +30,25 @@ class TestSKLearnClassifierBasedTypeFilter(unittest.TestCase):
         self.assertEquals(filter.filterCandidates(self.word, self.candidates), set([]))
 
     def test_create_with_qualified_classname(self):
-        clf = SKLearnClassifierBasedTypeFilter.create('sklearn.dummy.DummyClassifier', [])
+        clf = SKLearnClassifierBasedTypeFilter.create_for_training('sklearn.dummy.DummyClassifier', [])
         self.assertTrue(isinstance(clf.classifier, DummyClassifier))
 
     def test_create_from_string_svm(self):
-        clf = SKLearnClassifierBasedTypeFilter.create('__svm__', [])
+        clf = SKLearnClassifierBasedTypeFilter.create_for_training('__svm__', [])
         self.assertTrue(isinstance(clf.classifier, SVC))
 
     def test_create_from_string_bsvm(self):
-        clf = SKLearnClassifierBasedTypeFilter.create('__bagging_svm__', [])
+        clf = SKLearnClassifierBasedTypeFilter.create_for_training('__bagging_svm__', [])
         self.assertTrue(isinstance(clf.classifier, BalancedBaggingClassifier))
 
     def test_create_with_classifier_params(self):
-        clf = SKLearnClassifierBasedTypeFilter.create('SVC', [], {'C': 2, 'gamma': 0.1})
+        clf = SKLearnClassifierBasedTypeFilter.create_for_training('SVC', [], {'C': 2, 'gamma': 0.1})
         params = clf.get_params()
         self.assertEquals(params['classifier__C'], 2)
         self.assertEquals(params['classifier__gamma'], 0.1)
 
     def test_create_with_feature_extractor(self):
-        clf = SKLearnClassifierBasedTypeFilter.create('__svm__', [
+        clf = SKLearnClassifierBasedTypeFilter.create_for_training('__svm__', [
             {'name': 'Feat1', 'type': 'surface',
              'options': {'padding_char': 'Test'}}])
 

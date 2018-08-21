@@ -4,17 +4,18 @@ import argparse
 import json
 import multiprocessing
 
-from spellvardetection.type_filter import SKLearnClassifierBasedTypeFilter
+from spellvardetection.type_filter import createTypeFilter
 
 parser = argparse.ArgumentParser()
 parser.add_argument('candidate_file')
-parser.add_argument('modelfile_name')
+parser.add_argument('filter_name')
+parser.add_argument('filter_settings')
 parser.add_argument('output_file')
 args = parser.parse_args()
 
 candidates = json.load(open(args.candidate_file, 'r'))
-
-cand_filter = SKLearnClassifierBasedTypeFilter.load(args.modelfile_name)
+settings = json.loads(args.filter_settings)
+cand_filter = createTypeFilter(args.filter_name, settings)
 
 
 def apply_filter(word_candidates):
