@@ -38,11 +38,12 @@ class LookupGenerator(_AbstractCandidateGenerator):
     name = 'lookup'
 
     def __init__(self, dictionary):
-        self.candidate_dictionary = spellvardetection.lib.util.load_from_file_if_string(dictionary)
+        self.candidate_dictionary = {type_: frozenset(variants)
+                                     for type_, variants in spellvardetection.lib.util.load_from_file_if_string(dictionary).items()}
 
     def getCandidatesForWord(self, word):
 
-        return self.candidate_dictionary.get(word, set())
+        return self.candidate_dictionary.get(word, frozenset())
 
 
 class _AbstractSimplificationGenerator(_AbstractCandidateGenerator):
