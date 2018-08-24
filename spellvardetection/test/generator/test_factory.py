@@ -15,6 +15,13 @@ class TestGeneratorFactory(unittest.TestCase):
         with self.assertRaises(ValueError):
             spellvardetection.generator.createCandidateGenerator("lookup", {})
 
+    def test_factory_for_union_generator(self):
+
+        self.assertIsInstance(
+            spellvardetection.generator.createCandidateGenerator('union', {"generators": []}),
+            spellvardetection.generator.GeneratorUnion
+        )
+
     def test_factory_for_lookup_generator(self):
 
         self.assertIsInstance(

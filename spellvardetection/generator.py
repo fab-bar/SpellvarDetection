@@ -31,6 +31,21 @@ class _AbstractCandidateGenerator(metaclass=abc.ABCMeta):
                     zip([self]*len(words), words))
             }
 
+class GeneratorUnion(_AbstractCandidateGenerator):
+
+    name = 'union'
+
+    def __init__(self, generators):
+
+        self.generators = [
+            generator if isinstance(generator, _AbstractCandidateGenerator) else createCandidateGenerator(generator['type'], generator['options'])
+            for generator in spellvardetection.lib.util.load_from_file_if_string(generators)
+        ]
+
+    def getCandidatesForWord(self, word):
+
+        return set().union(*[generator.getCandidatesForWord(word) for generator in self.generators])
+
 ### Generators
 class LookupGenerator(_AbstractCandidateGenerator):
     """A spelling variant generator based on a simple dictionary lookup"""
