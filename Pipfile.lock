@@ -9,9 +9,9 @@
             "os_name": "posix",
             "platform_machine": "x86_64",
             "platform_python_implementation": "CPython",
-            "platform_release": "4.4.0-131-generic",
+            "platform_release": "4.4.0-134-generic",
             "platform_system": "Linux",
-            "platform_version": "#157-Ubuntu SMP Thu Jul 12 15:51:36 UTC 2018",
+            "platform_version": "#160-Ubuntu SMP Wed Aug 15 14:58:00 UTC 2018",
             "python_full_version": "3.6.4",
             "python_version": "3.6",
             "sys_platform": "linux"
@@ -29,6 +29,12 @@
         ]
     },
     "default": {
+        "docopt": {
+            "hashes": [
+                "sha256:49b3a825280bd66b3aa83585ef59c4a8c82f2c8a522dbe754a8bc8d08c85c491"
+            ],
+            "version": "==0.6.2"
+        },
         "e1839a8": {
             "editable": true,
             "path": "."
@@ -46,6 +52,12 @@
                 "sha256:d8fbb662919c1b16f438ad91a8256220e53bcf6815c9ad5502c518b798de34f2"
             ],
             "version": "==0.0"
+        },
+        "munkres": {
+            "hashes": [
+                "sha256:a269adeb960c494f5fcd7f92fcc2f48fbdf90fd14b5d45716c61adc10667fed6"
+            ],
+            "version": "==1.0.12"
         },
         "numpy": {
             "hashes": [
@@ -79,6 +91,12 @@
                 "sha256:a4a433b3a264dbc9aa9c7c241e87c0358a503ea6394f8737df1683c7c9a102ac"
             ],
             "version": "==1.14.5"
+        },
+        "openfile": {
+            "hashes": [
+                "sha256:8fc37fb3b94c8d8256480307afb550d50bfcd0bcecc14e2cd91fa3f695894b1a"
+            ],
+            "version": "==0.0.6"
         },
         "scikit-learn": {
             "hashes": [
@@ -151,6 +169,20 @@
                 "sha256:e23001573aa194b834122d2b9562459bf5ae494a2d59ca6b8aa22c85a44c0e31"
             ],
             "version": "==0.0"
+        },
+        "spsim": {
+            "hashes": [
+                "sha256:9665ba72f264276755791a97962f9daa1659e321add37563210c8942c9789ba9",
+                "sha256:94675d3f7bda25736c78ad9e4edc46ae8b5d3f13fd5f65b4e5bb2766e95b3d05"
+            ],
+            "version": "==0.1.2"
+        },
+        "stringology": {
+            "hashes": [
+                "sha256:deb464e15c9c01836e83beb34152ba96654c4110029b2dc35731dcda2888535b",
+                "sha256:5dbc4b7c5fa7bcc76767e2690eeb42f21b74fabcf06dda15515609eb34d94823"
+            ],
+            "version": "==0.1.0"
         }
     },
     "develop": {
