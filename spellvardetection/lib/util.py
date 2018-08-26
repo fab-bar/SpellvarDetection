@@ -8,7 +8,10 @@ import numpy
 
 def load_from_file_if_string(option):
     if isinstance(option, str):
-        return json.load(open(option, 'r'))
+        try:
+            return json.loads(option)
+        except:
+            return json.load(open(option, 'r'))
     else:
         return option
 

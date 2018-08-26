@@ -4,15 +4,16 @@ import argparse
 import json
 
 from spellvardetection.generator import createCandidateGenerator
+from spellvardetection.lib.util import load_from_file_if_string
 
 parser = argparse.ArgumentParser()
-parser.add_argument('vocabulary_file')
+parser.add_argument('vocabulary')
 parser.add_argument('generator')
 parser.add_argument('generator_settings')
 parser.add_argument('output_file')
 args = parser.parse_args()
 
-vocabulary = json.load(open(args.vocabulary_file, 'r'))
-settings = json.loads(args.generator_settings)
+vocabulary = load_from_file_if_string(args.vocabulary)
+settings = load_from_file_if_string(args.generator_settings)
 generator = createCandidateGenerator(args.generator, settings)
 json.dump({word: list(variants) for word, variants in generator.getCandidatesForWords(vocabulary).items()}, open(args.output_file, 'w'))
