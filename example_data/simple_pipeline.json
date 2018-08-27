@@ -1,0 +1,31 @@
+{
+  "generators":
+    [
+      {
+        "type": "pipeline",
+        "options": {
+          "generator": {
+            "type": "levenshtein",
+            "options": {
+              "dictionary": ["und", "vnde", "vnnde", "unde", "vns"],
+              "max_dist": 1,
+              "repetitions": "True"
+            }
+          },
+          "type_filter": {
+            "type": "cluster",
+            "options": {
+              "cluster_type": "brown",
+              "cluster_file": "example_data/gml.brown"
+            }
+          }
+        }
+      },
+      {
+        "type": "lookup",
+        "options": {
+          "spellvar_dictionary": {"vnd": ["unde"] }
+        }
+      }
+    ]
+}
