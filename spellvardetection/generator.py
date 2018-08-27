@@ -203,12 +203,13 @@ class LevenshteinNormalizedGenerator(_LevenshteinAutomatonGenerator):
 
     name = 'levenshtein_normalized'
 
-    def __init__(self, dictionary, dist_thresh=0.1, no_zero_dist=True, transposition=False, merge_split=False, repetitions=False):
+    def __init__(self, dictionary, dist_thresh=0.1, no_zero_dist=True, transposition=False, merge_split=False, repetitions=False, max_dist=5):
 
         super().__init__(dictionary, transposition, merge_split, repetitions)
 
         self.dist_thresh = dist_thresh
         self.no_zero_dist = no_zero_dist
+        self.max_dist = max_dist
 
     def getCandidatesForWord(self, word):
 
@@ -216,7 +217,7 @@ class LevenshteinNormalizedGenerator(_LevenshteinAutomatonGenerator):
         if self.no_zero_dist:
             dist = max(1, dist)
 
-        return super()._getCandidatesForWord(word, dist)
+        return super()._getCandidatesForWord(word, min(self.max_dist, dist))
 
 
 class _SetsimilarityGenerator(_AbstractCandidateGenerator):
