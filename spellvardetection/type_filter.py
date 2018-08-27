@@ -12,6 +12,7 @@ from sklearn.svm import SVC
 from imblearn.ensemble import BalancedBaggingClassifier
 
 from spellvardetection.util.feature_extractor import createFeatureExtractor, SurfaceExtractor
+import spellvardetection.lib.clusters
 import spellvardetection.lib.util
 
 
@@ -145,6 +146,31 @@ class SKLearnClassifierBasedTypeFilter(_AbstractTrainableTypeFilter, _BaseCompos
     def save(self, modelfile_name):
         joblib.dump(self, modelfile_name)
 
+
+class ClusterTypeFilter(_AbstractTypeFilter):
+
+    name = 'cluster'
+
+    def create(cluster_type, cluster_file, unknown_type=None, remove_candidates_without_cluster=False):
+
+        clusters = spellvardetection.lib.clusters.WordClusters(cluster_type, cluster_file, unknown_type)
+        return ClusterTypeFilter(clusters, remove_candidates_without_cluster)
+
+    def __init__(self, clusters, remove_candidates_without_cluster=False):
+        self.clusters = clusters
+        self.remove_candidates_without_cluster = remove_candidates_without_cluster
+
+    def isPair(self, word, candidate):
+
+        if not self.clusters.hasCluster(word):
+            return True
+        elif not self.clusters.hasCluster(candidate):
+            if self.remove_candidates_without_cluster:
+                return False
+            else:
+                return True
+        else:
+            return self.clusters.inSameCluster(word, candidate)
 
 ## Factory for filters
 createTrainableTypeFilter = spellvardetection.lib.util.create_factory("trainable_type_filter", _AbstractTrainableTypeFilter, create_func='create_for_training')
