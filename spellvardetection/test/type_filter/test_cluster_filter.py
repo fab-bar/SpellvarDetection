@@ -1,28 +1,14 @@
 import unittest
 
+import spellvardetection.test.MockClasses as MockClasses
+
 from spellvardetection.type_filter import ClusterTypeFilter
-
-class MockCluster:
-
-    def __init__(self, vocabulary, pairs):
-
-        self.voc = vocabulary
-        self.pairs = pairs
-
-    def hasCluster(self, word):
-
-        if word in self.voc:
-            return True
-
-    def inSameCluster(self, word, candidate):
-
-        return (word, candidate) in self.pairs
 
 class TestClusterBasedTypeFilter(unittest.TestCase):
 
     def setUp(self):
 
-        self.cluster_mock = MockCluster({'cat', 'dog', 'hat'}, {('cat', 'dog')})
+        self.cluster_mock = MockClasses.Cluster({'cat', 'dog', 'hat'}, {('cat', 'dog')})
 
     def test_filter_candidates(self):
 

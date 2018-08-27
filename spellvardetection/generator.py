@@ -9,7 +9,7 @@ import functools
 
 from spellvardetection.lib.lev_aut import DictAutomaton
 import spellvardetection.lib.util
-
+from spellvardetection.type_filter import _AbstractTypeFilter, createTypeFilter
 from spellvardetection.util.feature_extractor import createFeatureExtractor
 
 ### The common interface for candidate generators
@@ -45,6 +45,19 @@ class GeneratorUnion(_AbstractCandidateGenerator):
     def getCandidatesForWord(self, word):
 
         return set().union(*[generator.getCandidatesForWord(word) for generator in self.generators])
+
+class GeneratorPipeline(_AbstractCandidateGenerator):
+
+    name = 'pipeline'
+
+    def __init__(self, generator, type_filter):
+
+        self.generator = generator if isinstance(generator, _AbstractCandidateGenerator) else createCandidateGenerator(generator['type'], generator['options'])
+        self.type_filter = type_filter if isinstance(type_filter, _AbstractTypeFilter) else createTypeFilter(type_filter['type'], type_filter['options'])
+
+    def getCandidatesForWord(self, word):
+        candidates = self.generator.getCandidatesForWord(word)
+        return self.type_filter.filterCandidates(word, candidates)
 
 ### Generators
 class LookupGenerator(_AbstractCandidateGenerator):
