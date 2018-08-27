@@ -26,7 +26,7 @@ class TestGeneratorFactory(unittest.TestCase):
 
         self.assertIsInstance(
             spellvardetection.generator.createCandidateGenerator("lookup",
-                                                                 {'dictionary': {'cat': set('abc')}}),
+                                                                 {'spellvar_dictionary': {'cat': set('abc')}}),
             spellvardetection.generator.LookupGenerator
         )
 

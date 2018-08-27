@@ -65,9 +65,9 @@ class LookupGenerator(_AbstractCandidateGenerator):
 
     name = 'lookup'
 
-    def __init__(self, dictionary):
+    def __init__(self, spellvar_dictionary):
         self.candidate_dictionary = {type_: frozenset(variants)
-                                     for type_, variants in spellvardetection.lib.util.load_from_file_if_string(dictionary).items()}
+                                     for type_, variants in spellvardetection.lib.util.load_from_file_if_string(spellvar_dictionary).items()}
 
     def getCandidatesForWord(self, word):
 
