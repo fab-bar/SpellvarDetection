@@ -148,3 +148,21 @@ class TestGeneratorFactory(unittest.TestCase):
                 "options": {'dictionary': ['cat']}}),
             spellvardetection.generator.ProxinetteGenerator
         )
+
+    def test_factory_for_jaccard_generator(self):
+
+        self.assertIsInstance(
+            self.factory.create_from_name("generator", {
+                "type": "jaccard",
+                "options": {'dictionary': ['cat']}}),
+            spellvardetection.generator.JaccardSimilarityGenerator
+        )
+
+    def test_factory_for_frequency_weighted_jaccard_generator(self):
+
+        self.assertIsInstance(
+            self.factory.create_from_name("generator", {
+                "type": "frequency_wjaccard",
+                "options": {'dictionary': ['cat']}}),
+            spellvardetection.generator.FrequencyWeightedJaccardSimilarityGenerator
+        )

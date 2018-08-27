@@ -368,3 +368,55 @@ class ProxinetteGenerator(_SetsimilarityGenerator):
         intersection_weightedsum = sum([1/float(len(self.feature_known[feat])) for feat in intersection])
         seta_cardinality = len(seta)
         return intersection_weightedsum/float(seta_cardinality)
+
+
+class _AbstractJaccardSimilarityGenerator(_SetsimilarityGenerator):
+
+    @abc.abstractmethod
+    def _getWeightedSum(self, feature_set):
+        pass
+
+    @classmethod
+    def create(cls, dictionary: set=None, sim_thresh=0.2,
+               feature_extractor: FeatureExtractorMixin=None):
+
+        if feature_extractor is None:
+            feature_extractor = NGramExtractor(
+                min_ngram_size=2,
+                max_ngram_size=2,
+                skip_size=1,
+                gap='|',
+                bow='$',
+                eow='$',
+                pad_ngrams=False
+            )
+
+        return cls(
+            feature_extractor,
+            dictionary, sim_thresh)
+
+
+    def getSetsim(self, seta, setb):
+
+        intersection_wsum = self._getWeightedSum(set.intersection(seta, setb))
+        union_wsum = self._getWeightedSum(set.union(seta, setb))
+        return intersection_wsum/float(union_wsum)
+
+class JaccardSimilarityGenerator(_AbstractJaccardSimilarityGenerator):
+
+    name = 'jaccard'
+
+    def _getWeightedSum(self, feature_set):
+
+        # features are not weighted - sum is just the length of the feature set
+        return len(feature_set)
+
+class FrequencyWeightedJaccardSimilarityGenerator(_AbstractJaccardSimilarityGenerator):
+
+    name = 'frequency_wjaccard'
+
+    def _getWeightedSum(self, feature_set):
+
+        # each feature is weighted by its relative frequency in the dictionary
+        return sum([(1 - len(self.feature_known.get(feat, []))/float(len(self.dictionary))) for feat in feature_set])
+
