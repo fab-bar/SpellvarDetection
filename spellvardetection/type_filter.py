@@ -2,6 +2,10 @@
 
 import abc
 import importlib
+try:
+    import cPickle as pickle
+except ImportError:
+    import pickle
 
 from sklearn.base import ClassifierMixin
 from sklearn.pipeline import Pipeline, FeatureUnion
@@ -13,6 +17,7 @@ from imblearn.ensemble import BalancedBaggingClassifier
 
 from spellvardetection.util.feature_extractor import createFeatureExtractor, SurfaceExtractor
 import spellvardetection.lib.clusters
+from spellvardetection.lib.undir_spsim import UndirSpSim
 import spellvardetection.lib.util
 
 
@@ -171,6 +176,68 @@ class ClusterTypeFilter(_AbstractTypeFilter):
                 return True
         else:
             return self.clusters.inSameCluster(word, candidate)
+
+
+class _TrainableSimilarityFilter(_AbstractTrainableTypeFilter):
+
+    def __init__(self, similarity, sim_thresh=0.9):
+
+        self.similarity = similarity
+        self.sim_thresh = sim_thresh
+
+    def isPair(self, word, candidate):
+
+        return self.similarity(word, candidate) >= self.sim_thresh
+
+class UndirSpSimTypeFilter(_TrainableSimilarityFilter):
+
+    name = 'uspsim'
+
+    def create(spsim_filename,
+               sim_thresh=0.9,
+               ignore_case=True,
+               ignore_accents=True,
+               group_vowels=False,
+               no_empty=False,
+               bow='^',
+               eow="$"):
+
+        filter_ = UndirSpSimTypeFilter(None, sim_thresh)
+        filter_.load(spsim_filename)
+        return filter_
+
+
+    def create_for_training(sim_thresh=0.9,
+                            ignore_case=True,
+                            ignore_accents=True,
+                            group_vowels=False,
+                            no_empty=False,
+                            bow='^',
+                            eow="$"):
+
+        uspsim = UndirSpSim(ignore_case=ignore_case,
+                            ignore_accents=ignore_accents,
+                            group_vowels=group_vowels,
+                            no_empty=no_empty,
+                            bow=bow,
+                            eow=eow)
+        return UndirSpSimTypeFilter(uspsim, sim_thresh)
+
+    def train(self, positive_pairs, negative_pairs):
+
+        ### negative pairs are ignored (SpSim only uses positive pairs)
+        self.similarity.learn(positive_pairs)
+
+    def load(self, file_name):
+
+        with open(file_name, 'rb') as infile:
+            self.similarity = pickle.load(infile)
+
+    def save(self, file_name):
+
+        with open(file_name, 'wb') as outfile:
+            pickle.dump(self.similarity, outfile)
+
 
 ## Factory for filters
 createTrainableTypeFilter = spellvardetection.lib.util.create_factory("trainable_type_filter", _AbstractTrainableTypeFilter, create_func='create_for_training')
