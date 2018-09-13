@@ -10,12 +10,16 @@ parser = argparse.ArgumentParser()
 parser.add_argument('vocabulary')
 parser.add_argument('generator')
 parser.add_argument('generator_settings')
+parser.add_argument('--dictionary', '-d')
 parser.add_argument('--output_file', '-o', type=argparse.FileType('w'))
 args = parser.parse_args()
 
 vocabulary = load_from_file_if_string(args.vocabulary)
 settings = load_from_file_if_string(args.generator_settings)
 generator = createCandidateGenerator(args.generator, settings)
+
+if args.dictionary:
+    generator.setDictionary(args.dictionary)
 
 print(
     json.dumps({word: list(variants) for word, variants in generator.getCandidatesForWords(vocabulary).items()}),

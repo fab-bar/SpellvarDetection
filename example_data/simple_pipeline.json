@@ -7,7 +7,6 @@
           "generator": {
             "type": "levenshtein",
             "options": {
-              "dictionary": ["und", "vnde", "vnnde", "unde", "vns"],
               "max_dist": 1,
               "repetitions": "True"
             }
