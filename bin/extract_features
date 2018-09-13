@@ -19,11 +19,9 @@ feature_cache = dict()
 
 for extractor in json.loads(args.feature_extractors):
 
-    extractor_type = extractor['type']
     extractor_key = extractor['key']
-    options = extractor.get('options', {})
 
-    feature_extractor = createFeatureExtractor(extractor_type, options)
+    feature_extractor = createFeatureExtractor(extractor)
     feature_extractor.setFeatureCache(feature_cache, key=extractor_key)
     feature_extractor.extractFeatures(spellvarpairs)
 

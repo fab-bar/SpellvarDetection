@@ -80,7 +80,7 @@ class SKLearnClassifierBasedTypeFilter(_AbstractTrainableTypeFilter, _BaseCompos
         ## instantiate feature extractors
         extractors = []
         for extractor in feature_extractors:
-            extractor_object = createFeatureExtractor(extractor['type'], extractor.get('options', {}))
+            extractor_object = createFeatureExtractor(extractor)
             if 'cache' in extractor:
                 extractor_object.setFeatureCache(extractor['cache'], key=extractor.get('key', None))
             extractors.append((extractor['name'], extractor_object))

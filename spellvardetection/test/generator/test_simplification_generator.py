@@ -26,7 +26,7 @@ class TestSimplificationGenerator(unittest.TestCase):
         generator = SimplificationGenerator(self.rules, self.dict)
         self.assertEqual(generator.getCandidatesForWords(['iu', 'tu']), {'iu': set(['ju', 'yu', 'iju']), 'tu': set()})
 
-        generator = SimplificationGenerator(self.rules, self.dict, ('levenshtein', {'max_dist': 1}))
+        generator = SimplificationGenerator(self.rules, self.dict, {'type': 'levenshtein', 'options': {'max_dist': 1}})
         self.assertEqual(generator.getCandidatesForWords(['iu', 'tu']), {'iu': set(['ju', 'yu', 'iju', 'hiju', 'tu']), 'tu': set(['iu', 'ju', 'yu', 'iju'])})
 
     def test_set_dictionary(self):

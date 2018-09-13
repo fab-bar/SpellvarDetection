@@ -50,7 +50,15 @@ def create_factory(type_name, base_cls, create_func=None):
             factory_objects[name] = factory_info
 
 
-    def factory(object_type, options):
+    def factory(object_options):
+
+        if 'type' not in object_options:
+            raise ValueError('Type of object needs to be given')
+
+        object_type = object_options['type']
+
+        options = object_options.get('options', {})
+
 
         if object_type not in factory_objects:
             raise ValueError('No candidate ' + type_name + ' of type "' + object_type + '" exists.')

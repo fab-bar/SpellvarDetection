@@ -42,7 +42,7 @@ class GeneratorUnion(_AbstractCandidateGenerator):
     def __init__(self, generators, dictionary=None):
 
         self.generators = [
-            generator if isinstance(generator, _AbstractCandidateGenerator) else createCandidateGenerator(generator['type'], generator['options'])
+            generator if isinstance(generator, _AbstractCandidateGenerator) else createCandidateGenerator(generator)
             for generator in spellvardetection.lib.util.load_from_file_if_string(generators)
         ]
 
@@ -64,8 +64,8 @@ class GeneratorPipeline(_AbstractCandidateGenerator):
 
     def __init__(self, generator, type_filter, dictionary=None):
 
-        self.generator = generator if isinstance(generator, _AbstractCandidateGenerator) else createCandidateGenerator(generator['type'], generator['options'])
-        self.type_filter = type_filter if isinstance(type_filter, _AbstractTypeFilter) else createTypeFilter(type_filter['type'], type_filter['options'])
+        self.generator = generator if isinstance(generator, _AbstractCandidateGenerator) else createCandidateGenerator(generator)
+        self.type_filter = type_filter if isinstance(type_filter, _AbstractTypeFilter) else createTypeFilter(type_filter)
 
         if dictionary is not None:
             self.setDictionary(dictionary)
@@ -100,7 +100,7 @@ class _AbstractSimplificationGenerator(_AbstractCandidateGenerator):
         self.generator = None
         if generator is not None:
             generator = spellvardetection.lib.util.load_from_file_if_string(generator)
-            self.generator = createCandidateGenerator(generator[0], {**generator[1]})
+            self.generator = createCandidateGenerator(generator)
 
         if dictionary is not None:
             self.setDictionary(dictionary)
@@ -320,14 +320,17 @@ class ProxinetteGenerator(_SetsimilarityGenerator):
     name = 'proxinette'
 
     def create(dictionary=None, sim_thresh=0.01,
-               feature_extractor="ngram", feature_extractor_options={
-                   'min_ngram_size': 3, 'max_ngram_size': float('inf'),
-                   'skip_size': 0, 'gap': '',
-                   'bow': "$", 'eow': "$"
+               feature_extractor_options={
+                   'type': "ngram",
+                   'options': {
+                       'min_ngram_size': 3, 'max_ngram_size': float('inf'),
+                       'skip_size': 0, 'gap': '',
+                       'bow': "$", 'eow': "$"
+                   }
                }):
 
         return ProxinetteGenerator(
-            createFeatureExtractor(feature_extractor, feature_extractor_options),
+            createFeatureExtractor(feature_extractor_options),
             dictionary, sim_thresh)
 
 

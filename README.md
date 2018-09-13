@@ -33,7 +33,7 @@ Here are some examples how to run a pipeline for detecting spelling variants.
 
 The following command runs the union of the generators described in `example_data/simple_pipeline.json`:
 
-    pipenv run ./bin/generate_candidates '["vnd"]' union example_data/simple_pipeline.json --dictionary '["und", "vnde", "vnnde", "unde", "vns"]'
+    pipenv run ./bin/generate_candidates '["vnd"]' example_data/simple_pipeline.json --dictionary '["und", "vnde", "vnnde", "unde", "vns"]'
 
 Some filters need to be trained, e.g. a SVM for distinguishing betwwen pairs
 of variants and non-variants using character n-grams from the aligned words.
@@ -41,13 +41,13 @@ Positive and negative examples are given in `example_data/gml_positive_pairs`
 and `example_data/gml_negative_pairs`. The trained model is written into the
 file `example_data/gml_spellvar.model`.
 
-    pipenv run ./bin/train_filter sklearn '{"classifier_clsname": "__svm__", "feature_extractors": [{"type": "surface", "name": "surface"}]}' example_data/gml_spellvar.model example_data/gml_positive_pairs example_data/gml_negative_pairs
+    pipenv run ./bin/train_filter '{"type": "sklearn", "options": {"classifier_clsname": "__svm__", "feature_extractors": [{"type": "surface", "name": "surface"}]}}' example_data/gml_spellvar.model example_data/gml_positive_pairs example_data/gml_negative_pairs
 
 The model can then be used to filter spelling variants:
 
-    pipenv run ./bin/filter '{"vnd": ["und", "vns"]}' sklearn '{"modelfile_name": "example_data/gml_spellvar.model"}'
+    pipenv run ./bin/filter '{"vnd": ["und", "vns"]}' '{"type": "sklearn", "options": {"modelfile_name": "example_data/gml_spellvar.model"}}'
 
 It can also be intergrated into a generator pipeline directly:
 
-    pipenv run ./bin/generate_candidates '["vnd"]' union example_data/svm_pipeline.json --dictionary '["und", "vnde", "vnnde", "unde", "vns"]'
+    pipenv run ./bin/generate_candidates '["vnd"]' example_data/svm_pipeline.json --dictionary '["und", "vnde", "vnnde", "unde", "vns"]'
 

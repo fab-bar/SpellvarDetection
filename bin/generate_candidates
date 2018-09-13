@@ -8,7 +8,6 @@ from spellvardetection.lib.util import load_from_file_if_string
 
 parser = argparse.ArgumentParser()
 parser.add_argument('vocabulary')
-parser.add_argument('generator')
 parser.add_argument('generator_settings')
 parser.add_argument('--dictionary', '-d')
 parser.add_argument('--output_file', '-o', type=argparse.FileType('w'))
@@ -16,7 +15,7 @@ args = parser.parse_args()
 
 vocabulary = load_from_file_if_string(args.vocabulary)
 settings = load_from_file_if_string(args.generator_settings)
-generator = createCandidateGenerator(args.generator, settings)
+generator = createCandidateGenerator(settings)
 
 if args.dictionary:
     generator.setDictionary(args.dictionary)

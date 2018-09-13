@@ -9,14 +9,13 @@ from spellvardetection.lib.util import load_from_file_if_string
 
 parser = argparse.ArgumentParser()
 parser.add_argument('candidates')
-parser.add_argument('filter_name')
 parser.add_argument('filter_settings')
 parser.add_argument('--output_file', '-o', type=argparse.FileType('w'))
 args = parser.parse_args()
 
 candidates = load_from_file_if_string(args.candidates)
 settings = load_from_file_if_string(args.filter_settings)
-cand_filter = createTypeFilter(args.filter_name, settings)
+cand_filter = createTypeFilter(settings)
 
 def apply_filter(word_candidates):
     return (word_candidates[0], list(cand_filter.filterCandidates(word_candidates[0], word_candidates[1])))
