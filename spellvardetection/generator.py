@@ -22,6 +22,10 @@ class _AbstractCandidateGenerator(metaclass=abc.ABCMeta):
     def getCandidatesForWord(self, word):
         pass
 
+    def setDictionary(self, dictionary):
+
+        self.dictionary = spellvardetection.lib.util.load_from_file_if_string(dictionary)
+
     def getCandidatesForWords(self, words):
 
         with multiprocessing.Pool(multiprocessing.cpu_count()) as pool:
@@ -35,29 +39,44 @@ class GeneratorUnion(_AbstractCandidateGenerator):
 
     name = 'union'
 
-    def __init__(self, generators):
+    def __init__(self, generators, dictionary=None):
 
         self.generators = [
             generator if isinstance(generator, _AbstractCandidateGenerator) else createCandidateGenerator(generator['type'], generator['options'])
             for generator in spellvardetection.lib.util.load_from_file_if_string(generators)
         ]
 
+        if dictionary is not None:
+            self.setDictionary(dictionary)
+
     def getCandidatesForWord(self, word):
 
         return set().union(*[generator.getCandidatesForWord(word) for generator in self.generators])
+
+    def setDictionary(self, dictionary):
+
+        for generator in self.generators:
+            generator.setDictionary(dictionary)
 
 class GeneratorPipeline(_AbstractCandidateGenerator):
 
     name = 'pipeline'
 
-    def __init__(self, generator, type_filter):
+    def __init__(self, generator, type_filter, dictionary=None):
 
         self.generator = generator if isinstance(generator, _AbstractCandidateGenerator) else createCandidateGenerator(generator['type'], generator['options'])
         self.type_filter = type_filter if isinstance(type_filter, _AbstractTypeFilter) else createTypeFilter(type_filter['type'], type_filter['options'])
 
+        if dictionary is not None:
+            self.setDictionary(dictionary)
+
     def getCandidatesForWord(self, word):
         candidates = self.generator.getCandidatesForWord(word)
         return self.type_filter.filterCandidates(word, candidates)
+
+    def setDictionary(self, dictionary):
+
+        self.generator.setDictionary(dictionary)
 
 ### Generators
 class LookupGenerator(_AbstractCandidateGenerator):
@@ -76,7 +95,33 @@ class LookupGenerator(_AbstractCandidateGenerator):
 
 class _AbstractSimplificationGenerator(_AbstractCandidateGenerator):
 
-    def __init__(self, dictionary, generator=None):
+    def __init__(self, dictionary=None, generator=None):
+
+        self.generator = None
+        if generator is not None:
+            generator = spellvardetection.lib.util.load_from_file_if_string(generator)
+            self.generator = createCandidateGenerator(generator[0], {**generator[1]})
+
+        if dictionary is not None:
+            self.setDictionary(dictionary)
+
+    @abc.abstractmethod
+    def __apply_rules(self, word):
+        pass
+
+
+    def getCandidatesForWord(self, word):
+
+        if not hasattr(self, 'simpl_candidates'):
+            raise RuntimeError("Dictionary has to be set for generator of type " + self.name)
+
+        simpl_words = [self.__apply_rules(word)]
+        if self.generator is not None:
+            simpl_words.extend(self.generator.getCandidatesForWord(simpl_words[0]))
+
+        return set.union(*[self.simpl_candidates.get(simpl_word, set([])) for simpl_word in simpl_words]).difference([word])
+
+    def setDictionary(self, dictionary):
 
         dictionary = spellvardetection.lib.util.load_from_file_if_string(dictionary)
 
@@ -87,24 +132,8 @@ class _AbstractSimplificationGenerator(_AbstractCandidateGenerator):
                self.simpl_candidates[simpl_word] = set()
             self.simpl_candidates[simpl_word].add(word)
 
-        self.generator = None
-        if generator is not None:
-            generator = spellvardetection.lib.util.load_from_file_if_string(generator)
-            self.generator = createCandidateGenerator(generator[0], {**generator[1], **{'dictionary': self.simpl_candidates.keys()}})
-
-    @abc.abstractmethod
-    def __apply_rules(self, word):
-        pass
-
-
-    def getCandidatesForWord(self, word):
-
-        simpl_words = [self.__apply_rules(word)]
         if self.generator is not None:
-            simpl_words.extend(self.generator.getCandidatesForWord(simpl_words[0]))
-
-        return set.union(*[self.simpl_candidates.get(simpl_word, set([])) for simpl_word in simpl_words]).difference([word])
-
+            self.generator.setDictionary(self.simpl_candidates.keys())
 
 ### A simplification generator with the rules from Koleva et al. 2017 (https://doi.org/10.1075/ijcl.22.1.05kol)
 class GentGMLSimplificationGenerator(_AbstractSimplificationGenerator):
@@ -155,7 +184,7 @@ class SimplificationGenerator(_AbstractSimplificationGenerator):
 
         return word
 
-    def __init__(self, ruleset, dictionary, generator=None):
+    def __init__(self, ruleset, dictionary=None, generator=None):
 
         simplification_rules = spellvardetection.lib.util.load_from_file_if_string(ruleset)
 
@@ -181,14 +210,19 @@ class SimplificationGenerator(_AbstractSimplificationGenerator):
 
 class _LevenshteinAutomatonGenerator(_AbstractCandidateGenerator):
 
-    def __init__(self, dictionary, transposition=False, merge_split=False, repetitions=False):
+    def __init__(self, dictionary=None, transposition=False, merge_split=False, repetitions=False):
 
-        self.dict_automaton = DictAutomaton(spellvardetection.lib.util.load_from_file_if_string(dictionary))
         self.transposition = transposition
         self.merge_split = merge_split
         self.repetitions = repetitions
 
+        if dictionary is not None:
+            self.setDictionary(dictionary)
+
     def _getCandidatesForWord(self, word, distance):
+
+        if not hasattr(self, 'dict_automaton'):
+            raise RuntimeError("Dictionary has to be set for generator of type " + self.name)
 
         cands = self.dict_automaton.fuzzySearch(word, distance, transposition=self.transposition, merge_split=self.merge_split, repetitions=self.repetitions)
 
@@ -197,11 +231,16 @@ class _LevenshteinAutomatonGenerator(_AbstractCandidateGenerator):
 
         return cands
 
+    def setDictionary(self, dictionary):
+
+        self.dict_automaton = DictAutomaton(spellvardetection.lib.util.load_from_file_if_string(dictionary))
+
+
 class LevenshteinGenerator(_LevenshteinAutomatonGenerator):
 
     name = 'levenshtein'
 
-    def __init__(self, dictionary, max_dist=2, transposition=False, merge_split=False, repetitions=False):
+    def __init__(self, dictionary=None, max_dist=2, transposition=False, merge_split=False, repetitions=False):
 
         super().__init__(dictionary, transposition, merge_split, repetitions)
 
@@ -216,7 +255,7 @@ class LevenshteinNormalizedGenerator(_LevenshteinAutomatonGenerator):
 
     name = 'levenshtein_normalized'
 
-    def __init__(self, dictionary, dist_thresh=0.1, no_zero_dist=True, transposition=False, merge_split=False, repetitions=False, max_dist=5):
+    def __init__(self, dictionary=None, dist_thresh=0.1, no_zero_dist=True, transposition=False, merge_split=False, repetitions=False, max_dist=5):
 
         super().__init__(dictionary, transposition, merge_split, repetitions)
 
@@ -235,26 +274,22 @@ class LevenshteinNormalizedGenerator(_LevenshteinAutomatonGenerator):
 
 class _SetsimilarityGenerator(_AbstractCandidateGenerator):
 
-    def __init__(self, featureset_extractor, dictionary, sim_thresh=0.2):
+    def __init__(self, featureset_extractor, dictionary=None, sim_thresh=0.2):
 
         self.featureset_extractor = featureset_extractor
-
-        self.dictionary = spellvardetection.lib.util.load_from_file_if_string(dictionary)
         self.sim_thresh = sim_thresh
 
-        self.feature_known = {}
-        for k_type in self.dictionary:
-            k_feat = self.featureset_extractor.extractFeaturesFromDatapoint(k_type)
-            for feat in k_feat:
-                if feat not in self.feature_known:
-                    self.feature_known[feat] = []
-                self.feature_known[feat].append(k_type)
+        if dictionary is not None:
+            self.setDictionary(dictionary)
 
     @abc.abstractmethod
     def getSetsim(self, seta, setb):
         pass
 
     def getCandidatesForWord(self, texttype):
+
+        if not hasattr(self, 'dictionary'):
+            raise RuntimeError("Dictionary has to be set for generator of type " + self.name)
 
         texttype_feat = self.featureset_extractor.extractFeaturesFromDatapoint(texttype)
         sim_cands = set()
@@ -268,12 +303,23 @@ class _SetsimilarityGenerator(_AbstractCandidateGenerator):
                 self.featureset_extractor.extractFeaturesFromDatapoint(cand)
             ) >= self.sim_thresh)])
 
+    def setDictionary(self, dictionary):
+
+        self.dictionary = spellvardetection.lib.util.load_from_file_if_string(dictionary)
+        self.feature_known = {}
+        for k_type in self.dictionary:
+            k_feat = self.featureset_extractor.extractFeaturesFromDatapoint(k_type)
+            for feat in k_feat:
+                if feat not in self.feature_known:
+                    self.feature_known[feat] = []
+                self.feature_known[feat].append(k_type)
+
 
 class ProxinetteGenerator(_SetsimilarityGenerator):
 
     name = 'proxinette'
 
-    def create(dictionary, sim_thresh=0.01,
+    def create(dictionary=None, sim_thresh=0.01,
                feature_extractor="ngram", feature_extractor_options={
                    'min_ngram_size': 3, 'max_ngram_size': float('inf'),
                    'skip_size': 0, 'gap': '',
