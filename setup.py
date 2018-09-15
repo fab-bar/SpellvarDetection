@@ -11,6 +11,6 @@ setup(name='SpellvarDetection',
           'numpy<1.15',
           'scipy',
           'sklearn',
-          'imblearn',
+          'imbalanced-learn',
           'spsim'
       ])
