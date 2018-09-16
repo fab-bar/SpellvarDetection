@@ -12,5 +12,6 @@ setup(name='SpellvarDetection',
           'scipy',
           'sklearn',
           'imbalanced-learn',
-          'spsim'
+          'spsim',
+          'flask'
       ])

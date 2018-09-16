@@ -27,9 +27,10 @@ spelling detection is [pipenv](https://pipenv.readthedocs.io/en/latest/). Simply
 run `pipenv install` to install the required libraries (append `--dev` to
 install dependencies for development as well).
 
-## Examples
+## Command line interface
 
-Here are some examples how to run a pipeline for detecting spelling variants.
+Here are some examples how to run a pipeline for detecting spelling variants
+from the command line.
 
 The following command runs the union of the generators described in `example_data/simple_pipeline.json`:
 
@@ -51,3 +52,24 @@ It can also be intergrated into a generator pipeline directly:
 
     pipenv run ./bin/generate_candidates '["vnd"]' example_data/svm_pipeline.json --dictionary '["und", "vnde", "vnnde", "unde", "vns"]'
 
+
+## REST API
+
+Spelling variant detection pipelines can also be run using a REST API.
+To try it, a development server can be started with the following command:
+
+    pipenv run bash -c 'export FLASK_APP=spellvardetection.rest; flask run'
+
+
+To use pipelines and dictionaries they have to be stored in the subfolders
+`pipeline` and `dict` of an [instance
+folder](http://flask.pocoo.org/docs/1.0/config/#instance-folders):
+
+    curl http://127.0.0.1:5000/generate/generator/dictionary/vnd
+
+This will use the generator described in the file `pipeline/generator_file` to
+generate candidates for `vnd` from the dictionary in the file `dict/dictionary`.
+
+Using post, candidates can be generated for multiple words:
+
+    curl --header "Content-Type: application/json" --request POST --data '["vnd", "vnnd"]' http://127.0.0.1:5000/generate/generator/dictionary
