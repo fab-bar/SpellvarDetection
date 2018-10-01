@@ -55,21 +55,32 @@ It can also be intergrated into a generator pipeline directly:
 
 ## REST API
 
-Spelling variant detection pipelines can also be run using a REST API.
+Spelling variant detection pipelines can also be run using a REST API. Pipelines
+and dictionaries that can be used with this API are stored in a database. There
+is a simple command line interface to add them. To use ist, start a pipenv shell
+by running `pipenv shell`. First set the `FLASK_APP` environment variable to
+`spellvardetection.rest`:
+
+    export FLASK_APP=spellvardetection.rest
+
+Now you can add generators and dictionaries using the command line interface:
+
+    flask db add-dictionary gml '["und", "vnde", "vnnde", "unde", "vns"]'
+    flask db add-generator lev1 '{"type": "levenshtein", "options": {"max_dist": 1, "repetitions": "True"}}'
+
+There also exists the command `db clear` to remove everything from the database.
+
 To try it, a development server can be started with the following command:
 
-    pipenv run bash -c 'export FLASK_APP=spellvardetection.rest; flask run'
+    flask run
 
+You can now try the API:
 
-To use pipelines and dictionaries they have to be stored in the subfolders
-`pipeline` and `dict` of an [instance
-folder](http://flask.pocoo.org/docs/1.0/config/#instance-folders):
+    curl http://127.0.0.1:5000/generate/lev1/gml/vnd
 
-    curl http://127.0.0.1:5000/generate/generator/dictionary/vnd
-
-This will use the generator described in the file `pipeline/generator_file` to
-generate candidates for `vnd` from the dictionary in the file `dict/dictionary`.
+This will use the generator `lev1` to generate candidates for `vnd` from the
+dictionary `gml`.
 
 Using post, candidates can be generated for multiple words:
 
-    curl --header "Content-Type: application/json" --request POST --data '["vnd", "vnnd"]' http://127.0.0.1:5000/generate/generator/dictionary
+    curl --header "Content-Type: application/json" --request POST --data '["vnd", "vnnd"]' http://127.0.0.1:5000/generate/lev1/gml

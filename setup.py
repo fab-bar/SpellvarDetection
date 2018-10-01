@@ -15,7 +15,8 @@ setup(name='SpellvarDetection',
           'scikit-learn',
           'imbalanced-learn',
           'spsim',
-          'flask'
+          'flask',
+          'tinymongo'
       ],
       entry_points={
         'console_scripts': ['spellvardetection = spellvardetection.cli:main']

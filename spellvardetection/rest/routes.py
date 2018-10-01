@@ -5,32 +5,29 @@ from flask import request
 import flask.json
 
 from spellvardetection.rest.app import app
+from spellvardetection.rest.db import get_db
 
 from spellvardetection.generator import createCandidateGenerator, _AbstractCandidateGenerator
 
 def get_generator(generator, dictionary):
 
-    try:
-        generator_description = json.load(
-            open(os.path.join(app.instance_path, 'pipeline', generator), 'r'))
-    except OSError:
+    db = get_db()
+
+    generator_description = db.generators.find_one({'name': generator})
+    if generator_description is None:
         return flask.json.jsonify(message='Could not load generator ' + generator), 400
 
-
-    try:
-        dict_ = json.load(
-            open(os.path.join(app.instance_path, 'dict', dictionary), 'r'))
-    except OSError:
+    dict_ = db.dictionaries.find_one({'name': dictionary})
+    if dict_ is None:
         return flask.json.jsonify(message='Could not load dictionary ' + dictionary), 400
-
 
     try:
         generator_ = createCandidateGenerator(generator_description)
-        generator_.setDictionary(dict_)
+        generator_.setDictionary(dict_['dict'])
 
     except Exception:
 
-        return flask.json.jsonify(message='Could not load the generator.'), 400
+        return flask.json.jsonify(message='Could not create the generator.'), 400
 
     return generator_
 
