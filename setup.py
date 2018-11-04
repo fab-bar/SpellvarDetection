@@ -9,9 +9,9 @@ setup(name='SpellvarDetection',
       packages=find_packages(),
       setup_requires=['setuptools_scm'],
       install_requires=[
-          'numpy<1.15',
+          'numpy',
           'scipy',
-          'sklearn',
+          'scikit-learn',
           'imbalanced-learn',
           'spsim',
           'flask'
