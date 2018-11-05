@@ -34,7 +34,7 @@ from the command line.
 
 The following command runs the union of the generators described in `example_data/simple_pipeline.json`:
 
-    pipenv run ./bin/generate_candidates '["vnd"]' example_data/simple_pipeline.json --dictionary '["und", "vnde", "vnnde", "unde", "vns"]'
+    pipenv run spellvardetection generate '["vnd"]' example_data/simple_pipeline.json --dictionary '["und", "vnde", "vnnde", "unde", "vns"]'
 
 Some filters need to be trained, e.g. a SVM for distinguishing betwwen pairs
 of variants and non-variants using character n-grams from the aligned words.
@@ -50,7 +50,7 @@ The model can then be used to filter spelling variants:
 
 It can also be intergrated into a generator pipeline directly:
 
-    pipenv run ./bin/generate_candidates '["vnd"]' example_data/svm_pipeline.json --dictionary '["und", "vnde", "vnnde", "unde", "vns"]'
+    pipenv run spellvardetection generate '["vnd"]' example_data/svm_pipeline.json --dictionary '["und", "vnde", "vnnde", "unde", "vns"]'
 
 
 ## REST API
