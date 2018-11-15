@@ -23,3 +23,16 @@ class TestCLI(unittest.TestCase):
         result_dict = json.loads(result.output)
         result_dict["vnd"] = set(result_dict["vnd"])
         self.assertEquals(result_dict, {"vnd": set(["und", "vnde", "vns"])})
+
+    def test_filter_candidates(self):
+
+        runner = CliRunner()
+        with runner.isolated_filesystem():
+            with open('brown.txt', 'w') as f:
+                f.write('1010	und	14\n1010	vnd	16\n1010	vnde	1604\n1010	unde	897\n11110	vns	31\n')
+
+            result = runner.invoke(spellvardetection.cli.main, ['filter', '{"vnd": ["und", "vns"]}', '{"type": "cluster", "options": {"cluster_type": "brown", "cluster_file": "brown.txt"}}'])
+
+            result_dict = json.loads(result.output)
+            result_dict["vnd"] = set(result_dict["vnd"])
+            self.assertEquals(result_dict, {"vnd": set(["und"])})

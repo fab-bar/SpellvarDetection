@@ -46,7 +46,7 @@ file `example_data/gml_spellvar.model`.
 
 The model can then be used to filter spelling variants:
 
-    pipenv run ./bin/filter '{"vnd": ["und", "vns"]}' '{"type": "sklearn", "options": {"modelfile_name": "example_data/gml_spellvar.model"}}'
+    pipenv run spellvardetection filter '{"vnd": ["und", "vns"]}' '{"type": "sklearn", "options": {"modelfile_name": "example_data/gml_spellvar.model"}}'
 
 It can also be intergrated into a generator pipeline directly:
 
