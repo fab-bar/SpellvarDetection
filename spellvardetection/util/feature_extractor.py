@@ -83,7 +83,7 @@ class FeatureExtractorMixin(metaclass=abc.ABCMeta):
         if feature_cache is None:
             self.feature_cache = dict()
         else:
-            self.feature_cache = spellvardetection.lib.util.load_from_file_if_string(feature_cache)
+            self.feature_cache = feature_cache
 
         self.key = key
 

@@ -9,6 +9,7 @@ from sklearn.externals import joblib
 from sklearn.dummy import DummyClassifier
 
 import spellvardetection.cli
+from spellvardetection.type_filter import createTypeFilter
 
 class TestCLI(unittest.TestCase):
 
@@ -54,3 +55,82 @@ class TestCLI(unittest.TestCase):
 
             clf = joblib.load('dummy.model')
             self.assertTrue(isinstance(clf.classifier, DummyClassifier))
+
+
+    def _train_filter(self, runner, feature_extractor_options, global_cache=None):
+
+        cli_options = [
+            'train', 'filter'
+        ]
+        if global_cache is not None:
+            cli_options.extend(['-c', global_cache])
+        cli_options.extend([
+            '{"type": "sklearn", "options": {"classifier_clsname": "__svm__", "feature_extractors": [{"type": "surface", "name": "surface", ' + feature_extractor_options + '}]}}',
+            'dummy.model',
+            '[["hans", "hand"]]',
+            '[["under", "vnder"]]',
+        ])
+
+        runner.invoke(spellvardetection.cli.main, cli_options)
+
+
+    def _evaluate_trained_filter(self, type_, modelfile):
+
+        ## test that the model will predict "vnd" "vns" as negative and "und", "vnd" as positive
+        filter_ = createTypeFilter({"type": type_, "options": {"modelfile_name": modelfile}})
+        result = filter_.filterCandidates("vnd", ["und", "vns"])
+        self.assertEquals(result, set(["und"]))
+
+    def test_train_filter_with_feature_cache(self):
+
+        runner = CliRunner()
+        with runner.isolated_filesystem():
+
+            self._train_filter(runner,
+                               ## features for "under, vnder" and "hans", "hand" are exchanged in the cache  - will train the opposite
+                               '"cache": {"[\\"under\\", \\"vnder\\"]": [["nn", "ds"], ["nn", "ds", "$$"], ["aa", "nn", "ds"], ["ds", "$$"], ["ds"]], "[\\"hand\\", \\"hans\\"]": [["$$", "uv"], ["$$", "uv", "nn"], ["uv", "nn", "dd"], ["uv", "nn"], ["uv"]]}'
+            )
+            self._evaluate_trained_filter("sklearn", "dummy.model")
+
+
+    def test_train_filter_with_feature_cache_from_file(self):
+
+        runner = CliRunner()
+        with runner.isolated_filesystem():
+
+            with open('feature_cache.txt', 'w') as f:
+                ## features for "under, vnder" and "hans", "hand" are exchanged in the cache  - will train the opposite
+                f.write('{"[\\"under\\", \\"vnder\\"]": [["nn", "ds"], ["nn", "ds", "$$"], ["aa", "nn", "ds"], ["ds", "$$"], ["ds"]], "[\\"hand\\", \\"hans\\"]": [["$$", "uv"], ["$$", "uv", "nn"], ["uv", "nn", "dd"], ["uv", "nn"], ["uv"]]}')
+
+            self._train_filter(runner,
+                               '"cache": "feature_cache.txt"'
+            )
+            self._evaluate_trained_filter("sklearn", "dummy.model")
+
+
+    def test_train_filter_with_global_feature_cache(self):
+
+        runner = CliRunner()
+        with runner.isolated_filesystem():
+
+            self._train_filter(runner,
+                               '"key": "ngrams"',
+                               ## features for "under, vnder" and "hans", "hand" are exchanged - will train the opposite
+                               '{"[\\"under\\", \\"vnder\\"]": {"ngrams": [["nn", "ds"], ["nn", "ds", "$$"], ["aa", "nn", "ds"], ["ds", "$$"], ["ds"]]}, "[\\"hand\\", \\"hans\\"]": {"ngrams": [["$$", "uv"], ["$$", "uv", "nn"], ["uv", "nn", "dd"], ["uv", "nn"], ["uv"]]}}'
+            )
+            self._evaluate_trained_filter("sklearn", "dummy.model")
+
+    def test_train_filter_with_global_feature_cache_from_file(self):
+
+        runner = CliRunner()
+        with runner.isolated_filesystem():
+
+            with open('feature_cache.txt', 'w') as f:
+                ## features for "under, vnder" and "hans", "hand" are exchanged - will train the opposite
+                f.write('{"[\\"under\\", \\"vnder\\"]": {"ngrams": [["nn", "ds"], ["nn", "ds", "$$"], ["aa", "nn", "ds"], ["ds", "$$"], ["ds"]]}, "[\\"hand\\", \\"hans\\"]": {"ngrams": [["$$", "uv"], ["$$", "uv", "nn"], ["uv", "nn", "dd"], ["uv", "nn"], ["uv"]]}}')
+
+            self._train_filter(runner,
+                               '"key": "ngrams"',
+                               'feature_cache.txt'
+            )
+            self._evaluate_trained_filter("sklearn", "dummy.model")
