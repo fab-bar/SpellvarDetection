@@ -5,7 +5,7 @@ import multiprocessing
 import click
 
 from .generator import createCandidateGenerator
-from .type_filter import createTypeFilter
+from .type_filter import createTypeFilter, createTrainableTypeFilter
 from .lib.util import load_from_file_if_string
 
 @click.group()
@@ -59,3 +59,30 @@ def filter_(candidates, filter_settings, output_file):
     click.echo(
         json.dumps({word_variants[0]: word_variants[1] for word_variants in filtered}),
         file=output_file)
+
+@main.group()
+def train():
+    pass
+
+@train.command('filter')
+@click.argument('filter_settings')
+@click.argument('modelfile_name')
+@click.argument('positive_pairs')
+@click.argument('negative_pairs')
+@click.option('-c', '--feature_cache')
+def train_filter(filter_settings, modelfile_name, positive_pairs, negative_pairs, feature_cache=None):
+
+    positive_pairs = load_from_file_if_string(positive_pairs)
+    negative_pairs = load_from_file_if_string(negative_pairs)
+
+    filter_settings = load_from_file_if_string(filter_settings)
+
+    if feature_cache is not None and 'feature_extractors' in filter_settings['options']:
+        feature_cache = json.load(open(feature_cache, 'r'))
+        for feature_extractor in filter_settings['options']['feature_extractors']:
+            if 'key' in feature_extractor:
+                feature_extractor['cache'] = feature_cache
+
+    cand_filter = createTrainableTypeFilter(filter_settings)
+    cand_filter.train(positive_pairs, negative_pairs)
+    cand_filter.save(modelfile_name)

@@ -5,6 +5,9 @@ import unittest
 import click
 from click.testing import CliRunner
 
+from sklearn.externals import joblib
+from sklearn.dummy import DummyClassifier
+
 import spellvardetection.cli
 
 class TestCLI(unittest.TestCase):
@@ -36,3 +39,18 @@ class TestCLI(unittest.TestCase):
             result_dict = json.loads(result.output)
             result_dict["vnd"] = set(result_dict["vnd"])
             self.assertEquals(result_dict, {"vnd": set(["und"])})
+
+    def test_train_filter(self):
+
+        runner = CliRunner()
+        with runner.isolated_filesystem():
+
+            result = runner.invoke(spellvardetection.cli.main, [
+                'train', 'filter',
+                '{"type": "sklearn", "options": {"classifier_clsname": "sklearn.dummy.DummyClassifier", "classifier_params": {"strategy": "constant", "constant": 0}, "feature_extractors": [{"type": "surface", "name": "surface"}]}}',
+                'dummy.model',
+                '[["under", "vnder"]]',
+                '[["hans", "hand"]]'])
+
+            clf = joblib.load('dummy.model')
+            self.assertTrue(isinstance(clf.classifier, DummyClassifier))
