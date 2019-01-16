@@ -24,7 +24,7 @@ def generate(vocabulary, generator_settings, dictionary, output_file):
     generator = createCandidateGenerator(settings)
 
     if dictionary:
-        generator.setDictionary(dictionary)
+        generator.setDictionary(load_from_file_if_string(dictionary))
 
     try:
         variants = generator.getCandidatesForWords(vocabulary)

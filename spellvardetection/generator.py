@@ -24,7 +24,7 @@ class _AbstractCandidateGenerator(metaclass=abc.ABCMeta):
 
     def setDictionary(self, dictionary):
 
-        self.dictionary = spellvardetection.lib.util.load_from_file_if_string(dictionary)
+        self.dictionary = dictionary
 
     def getCandidatesForWords(self, words):
 
@@ -122,8 +122,6 @@ class _AbstractSimplificationGenerator(_AbstractCandidateGenerator):
         return set.union(*[self.simpl_candidates.get(simpl_word, set([])) for simpl_word in simpl_words]).difference([word])
 
     def setDictionary(self, dictionary):
-
-        dictionary = spellvardetection.lib.util.load_from_file_if_string(dictionary)
 
         self.simpl_candidates = {}
         for word in dictionary:
@@ -233,7 +231,7 @@ class _LevenshteinAutomatonGenerator(_AbstractCandidateGenerator):
 
     def setDictionary(self, dictionary):
 
-        self.dict_automaton = DictAutomaton(spellvardetection.lib.util.load_from_file_if_string(dictionary))
+        self.dict_automaton = DictAutomaton(dictionary)
 
 
 class LevenshteinGenerator(_LevenshteinAutomatonGenerator):
@@ -305,7 +303,7 @@ class _SetsimilarityGenerator(_AbstractCandidateGenerator):
 
     def setDictionary(self, dictionary):
 
-        self.dictionary = spellvardetection.lib.util.load_from_file_if_string(dictionary)
+        self.dictionary = dictionary
         self.feature_known = {}
         for k_type in self.dictionary:
             k_feat = self.featureset_extractor.extractFeaturesFromDatapoint(k_type)
