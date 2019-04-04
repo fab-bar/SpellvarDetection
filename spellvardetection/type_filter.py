@@ -240,5 +240,9 @@ class UndirSpSimTypeFilter(_TrainableSimilarityFilter):
 
 
 ## Factory for filters
-createTrainableTypeFilter = spellvardetection.lib.util.create_factory("trainable_type_filter", _AbstractTrainableTypeFilter, create_func='create_for_training')
-createTypeFilter = spellvardetection.lib.util.create_factory("type_filter", _AbstractTypeFilter, create_func='create')
+from spellvardetection.util.factory import factory
+from functools import partial
+factory.add_object_hierarchy("trainable_type_filter", _AbstractTrainableTypeFilter, create_func='create_for_training')
+createTrainableTypeFilter = partial(factory.create_from_name, "trainable_type_filter")
+factory.add_object_hierarchy("type_filter", _AbstractTypeFilter, create_func='create')
+createTypeFilter = partial(factory.create_from_name, "type_filter")

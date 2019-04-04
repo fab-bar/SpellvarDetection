@@ -339,4 +339,7 @@ class ProxinetteGenerator(_SetsimilarityGenerator):
         return intersection_weightedsum/float(seta_cardinality)
 
 ## Factory for generators
-createCandidateGenerator = spellvardetection.lib.util.create_factory("generator", _AbstractCandidateGenerator, create_func='create')
+from spellvardetection.util.factory import factory
+from functools import partial
+factory.add_object_hierarchy("generator", _AbstractCandidateGenerator, create_func='create')
+createCandidateGenerator = partial(factory.create_from_name, "generator")
