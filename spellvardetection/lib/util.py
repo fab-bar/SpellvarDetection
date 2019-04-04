@@ -52,6 +52,9 @@ def create_factory(type_name, base_cls, create_func=None):
 
     def factory(object_options):
 
+        ## object_options are either a dict or encoded as json (possibly in a file)
+        object_options = load_from_file_if_string(object_options)
+
         if 'type' not in object_options:
             raise ValueError('Type of object needs to be given')
 

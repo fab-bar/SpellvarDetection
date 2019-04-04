@@ -43,7 +43,7 @@ class GeneratorUnion(_AbstractCandidateGenerator):
 
         self.generators = [
             generator if isinstance(generator, _AbstractCandidateGenerator) else createCandidateGenerator(generator)
-            for generator in spellvardetection.lib.util.load_from_file_if_string(generators)
+            for generator in generators
         ]
 
         if dictionary is not None:
@@ -99,8 +99,7 @@ class _AbstractSimplificationGenerator(_AbstractCandidateGenerator):
 
         self.generator = None
         if generator is not None:
-            generator = spellvardetection.lib.util.load_from_file_if_string(generator)
-            self.generator = createCandidateGenerator(generator)
+            self.generator = generator if isinstance(generator, _AbstractCandidateGenerator) else createCandidateGenerator(generator)
 
         if dictionary is not None:
             self.setDictionary(dictionary)

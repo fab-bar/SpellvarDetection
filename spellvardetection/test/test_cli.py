@@ -28,6 +28,46 @@ class TestCLI(unittest.TestCase):
         result_dict["vnd"] = set(result_dict["vnd"])
         self.assertEquals(result_dict, {"vnd": set(["und", "vnde", "vns"])})
 
+    def test_generate_candidates_with_internal_generator_from_file(self):
+
+        runner = CliRunner()
+        with runner.isolated_filesystem():
+            with open('generator.json', 'w') as f:
+                f.write('{"type": "levenshtein", "options": {"max_dist": 1}}')
+
+            result = runner.invoke(spellvardetection.cli.main, ['generate', '["vnd"]', """{"type": "simplification",
+                "options": {
+                        "dictionary": ["unde", "und", "vns", "vnde"],
+                        "ruleset": [["u", "v"]],
+                        "generator": "generator.json"
+                 }
+            }"""])
+
+            result_dict = json.loads(result.output)
+            result_dict["vnd"] = set(result_dict["vnd"])
+            self.assertEquals(result_dict, {"vnd": set(["unde", "und", "vnde", "vns"])})
+
+
+    def test_generate_candidates_with_union_of_generators_from_file(self):
+
+        runner = CliRunner()
+        with runner.isolated_filesystem():
+            with open('leven_generator.json', 'w') as f:
+                f.write('{"type": "levenshtein", "options": {"max_dist": 1}}')
+            with open('lookup_generator.json', 'w') as f:
+                f.write('{"type": "lookup", "options": {"spellvar_dictionary": {"vnd": ["unde"]}}}')
+
+            result = runner.invoke(spellvardetection.cli.main, ['generate', '["vnd"]', """{"type": "union",
+                "options": {
+                        "dictionary": ["unde", "und", "vns", "vnde"],
+                        "generators": ["leven_generator.json", "lookup_generator.json"]
+                 }
+            }"""])
+
+            result_dict = json.loads(result.output)
+            result_dict["vnd"] = set(result_dict["vnd"])
+            self.assertEquals(result_dict, {"vnd": set(["unde", "und", "vnde", "vns"])})
+
     def test_filter_candidates(self):
 
         runner = CliRunner()
