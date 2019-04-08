@@ -1,4 +1,5 @@
 import inspect
+import typing
 
 from spellvardetection.lib.util import load_from_file_if_string
 
@@ -36,12 +37,14 @@ class Factory:
                     else:
                         return lambda options: cls(**options)
 
-                factory_info = (
+                factory_info = {
                     ## get required arguments (those that have no default value)
-                    [param.name for param in init_sig.parameters.values() if param.name != 'self' and param.default is inspect.Parameter.empty],
+                    "required": [param.name for param in init_sig.parameters.values() if param.name != 'self' and param.default is inspect.Parameter.empty],
+                    ## get annotations for arguments
+                    "annotations": {param.name: param.annotation for param in init_sig.parameters.values() if param.name != 'self'},
                     ## function to instantiate generator with given options
-                    object_initializer(cls)
-                )
+                    "initializer": object_initializer(cls)
+                }
 
                 factory_objects[name] = factory_info
 
@@ -62,11 +65,24 @@ class Factory:
             if object_type not in factory_objects:
                 raise ValueError('No candidate ' + type_name + ' of type "' + object_type + '" exists.')
 
-            missing_options = [name for name in factory_objects[object_type][0] if name not in options]
+            missing_options = [name for name in factory_objects[object_type]["required"] if name not in options]
             if missing_options:
                 raise ValueError('Missing options [' + ', '.join(missing_options) + '] for ' + type_name + ' of type ' + object_type)
 
-            return factory_objects[object_type][1](options)
+            # create objects that are needed as arguments
+            for option in options.keys():
+                if options[option] is not None:
+                    if factory_objects[object_type]["annotations"][option] in self.factories_for_classes and options[option] and not isinstance(options[option], factory_objects[object_type]["annotations"][option]):
+                        options[option] = self.create_from_cls(factory_objects[object_type]["annotations"][option], options[option])
+                    ## handle sequences of registered types
+                    elif hasattr(factory_objects[object_type]["annotations"][option], '__origin__') and factory_objects[object_type]["annotations"][option].__origin__ is typing.Sequence:
+                        ## only handle sequences with objects of the same type
+                        if len(factory_objects[object_type]["annotations"][option].__args__) == 1:
+                            the_type = factory_objects[object_type]["annotations"][option].__args__[0]
+                            if the_type in self.factories_for_classes:
+                                options[option] = [self.create_from_cls(the_type, opt) for opt in options[option]]
+
+            return factory_objects[object_type]["initializer"](options)
 
         self.classes_for_name[type_name] = base_cls
         self.add_factory_method(base_cls, factory)

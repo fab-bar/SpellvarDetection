@@ -97,7 +97,30 @@ class TestCLI(unittest.TestCase):
             self.assertTrue(isinstance(clf.classifier, DummyClassifier))
 
 
-    def _train_filter(self, runner, feature_extractor_options, global_cache=None):
+    def test_train_filter_with_context_extractor(self):
+
+        runner = CliRunner()
+        with runner.isolated_filesystem():
+            with open('embeddings.txt', 'w') as f:
+                f.write('under 1 0 0\nvnder 1 0 0\nhans 0 1 0\nhand 0 0 1\n')
+
+            result = runner.invoke(spellvardetection.cli.main, [
+                'train', 'filter',
+                '{"type": "sklearn", "options": {"classifier_clsname": "sklearn.dummy.DummyClassifier", "classifier_params": {"strategy": "constant", "constant": 0}, "feature_extractors": [{"type": "context", "name": "context", "options": {"vector_type": "hyperwords", "vectorfile_name": "embeddings.txt"}}]}}',
+                'dummy.model',
+                '[["under", "vnder"]]',
+                '[["hans", "hand"]]'])
+
+            clf = joblib.load('dummy.model')
+            self.assertTrue(isinstance(clf.classifier, DummyClassifier))
+
+
+    def _train_filter(self, runner, feature_extractor_options, global_cache=None, positive_pairs=None, negative_pairs=None):
+
+        if positive_pairs is None:
+            positive_pairs = '[["hans", "hand"]]'
+        if negative_pairs is None:
+            negative_pairs = '[["under", "vnder"]]'
 
         cli_options = [
             'train', 'filter'
@@ -107,8 +130,8 @@ class TestCLI(unittest.TestCase):
         cli_options.extend([
             '{"type": "sklearn", "options": {"classifier_clsname": "__svm__", "feature_extractors": [{"type": "surface", "name": "surface", ' + feature_extractor_options + '}]}}',
             'dummy.model',
-            '[["hans", "hand"]]',
-            '[["under", "vnder"]]',
+            positive_pairs,
+            negative_pairs,
         ])
 
         runner.invoke(spellvardetection.cli.main, cli_options)
@@ -174,3 +197,23 @@ class TestCLI(unittest.TestCase):
                                'feature_cache.txt'
             )
             self._evaluate_trained_filter("sklearn", "dummy.model")
+
+    def test_pipeline(self):
+
+        runner = CliRunner()
+        with runner.isolated_filesystem():
+
+            self._train_filter(runner, '"key": "ngrams"',
+                               positive_pairs='[["under", "vnder"]]',
+                               negative_pairs='[["hans", "hand"]]'
+            )
+
+            result = runner.invoke(spellvardetection.cli.main, ['generate', '["vnd"]', """
+            {"type": "pipeline", "options": {
+               "generator": {"type": "levenshtein", "options": {"max_dist": 1}},
+               "type_filter": {"type": "sklearn", "options": {"modelfile_name": "dummy.model"}}
+            }}""", '-d', '["und", "unde", "vnde", "vns"]'])
+
+            result_dict = json.loads(result.output)
+            result_dict["vnd"] = set(result_dict["vnd"])
+            self.assertEquals(result_dict, {"vnd": set(["und", "vnde"])})

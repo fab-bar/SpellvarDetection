@@ -6,11 +6,12 @@ import re
 import collections
 import math
 import functools
+from typing import Sequence
 
 from spellvardetection.lib.lev_aut import DictAutomaton
 import spellvardetection.lib.util
-from spellvardetection.type_filter import _AbstractTypeFilter, createTypeFilter
-from spellvardetection.util.feature_extractor import createFeatureExtractor
+from spellvardetection.type_filter import _AbstractTypeFilter
+from spellvardetection.util.feature_extractor import FeatureExtractorMixin, createFeatureExtractor
 
 ### The common interface for candidate generators
 class _AbstractCandidateGenerator(metaclass=abc.ABCMeta):
@@ -39,12 +40,11 @@ class GeneratorUnion(_AbstractCandidateGenerator):
 
     name = 'union'
 
-    def __init__(self, generators, dictionary=None):
+    def __init__(self,
+                 generators: Sequence[_AbstractCandidateGenerator],
+                 dictionary=None):
 
-        self.generators = [
-            generator if isinstance(generator, _AbstractCandidateGenerator) else createCandidateGenerator(generator)
-            for generator in generators
-        ]
+        self.generators = generators
 
         if dictionary is not None:
             self.setDictionary(dictionary)
@@ -62,10 +62,13 @@ class GeneratorPipeline(_AbstractCandidateGenerator):
 
     name = 'pipeline'
 
-    def __init__(self, generator, type_filter, dictionary=None):
+    def __init__(self,
+                 generator: _AbstractCandidateGenerator,
+                 type_filter: _AbstractTypeFilter,
+                 dictionary=None):
 
-        self.generator = generator if isinstance(generator, _AbstractCandidateGenerator) else createCandidateGenerator(generator)
-        self.type_filter = type_filter if isinstance(type_filter, _AbstractTypeFilter) else createTypeFilter(type_filter)
+        self.generator = generator
+        self.type_filter = type_filter
 
         if dictionary is not None:
             self.setDictionary(dictionary)
@@ -95,11 +98,11 @@ class LookupGenerator(_AbstractCandidateGenerator):
 
 class _AbstractSimplificationGenerator(_AbstractCandidateGenerator):
 
-    def __init__(self, dictionary=None, generator=None):
+    def __init__(self,
+                 dictionary=None,
+                 generator: _AbstractCandidateGenerator=None):
 
-        self.generator = None
-        if generator is not None:
-            self.generator = generator if isinstance(generator, _AbstractCandidateGenerator) else createCandidateGenerator(generator)
+        self.generator = generator
 
         if dictionary is not None:
             self.setDictionary(dictionary)
@@ -181,7 +184,10 @@ class SimplificationGenerator(_AbstractSimplificationGenerator):
 
         return word
 
-    def __init__(self, ruleset, dictionary=None, generator=None):
+    def __init__(self,
+                 ruleset,
+                 dictionary=None,
+                 generator: _AbstractCandidateGenerator=None):
 
         simplification_rules = spellvardetection.lib.util.load_from_file_if_string(ruleset)
 
@@ -271,7 +277,9 @@ class LevenshteinNormalizedGenerator(_LevenshteinAutomatonGenerator):
 
 class _SetsimilarityGenerator(_AbstractCandidateGenerator):
 
-    def __init__(self, featureset_extractor, dictionary=None, sim_thresh=0.2):
+    def __init__(self,
+                 featureset_extractor: FeatureExtractorMixin,
+                 dictionary=None, sim_thresh=0.2):
 
         self.featureset_extractor = featureset_extractor
         self.sim_thresh = sim_thresh

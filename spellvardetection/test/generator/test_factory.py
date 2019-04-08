@@ -106,6 +106,16 @@ class TestGeneratorFactory(unittest.TestCase):
                 }})
         self.assertIsInstance(generator.generator, spellvardetection.generator._AbstractCandidateGenerator)
 
+    def test_factory_for_simplification_generator_with_ruleset_as_json(self):
+
+        generator = spellvardetection.generator.createCandidateGenerator({
+            "type": "simplification",
+                "options": {
+                    'dictionary': ['cat'],
+                    'ruleset': '[["b", "a"], ["g", "gh"]]'
+                }})
+        self.assertIsInstance(generator, spellvardetection.generator._AbstractCandidateGenerator)
+
     def test_factory_for_levenshtein_generator(self):
 
         self.assertIsInstance(
