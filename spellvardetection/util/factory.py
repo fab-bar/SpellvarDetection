@@ -10,9 +10,10 @@ def all_subclasses(cls):
 
 class Factory:
 
-    def __init__(self):
+    def __init__(self, option_parser=None):
         self.factories_for_classes = dict()
         self.classes_for_name = dict()
+        self.option_parser = option_parser
 
     def add_object_hierarchy(self, type_name,  base_cls, create_func=None):
 
@@ -51,8 +52,8 @@ class Factory:
 
         def factory(object_options):
 
-            ## object_options are either a dict or encoded as json (possibly in a file)
-            object_options = load_from_file_if_string(object_options)
+            if self.option_parser is not None:
+                object_options = self.option_parser(object_options)
 
             if 'type' not in object_options:
                 raise ValueError('Type of object needs to be given')
@@ -111,4 +112,4 @@ class Factory:
 
 
 
-factory = Factory()
+factory = Factory(option_parser=load_from_file_if_string)
