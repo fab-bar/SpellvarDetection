@@ -10,7 +10,8 @@ import numpy
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.feature_extraction import DictVectorizer
 from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import Imputer, StandardScaler
+from sklearn.preprocessing import StandardScaler
+from sklearn.impute import SimpleImputer
 from sklearn.metrics.pairwise import cosine_similarity
 
 import spellvardetection.lib.embeddings
@@ -215,7 +216,7 @@ class ContextExtractor(BaseEstimator, TransformerMixin, FeatureExtractorMixin):
     def fit(self, data, y=None):
 
         self.preprocessing = Pipeline([
-            ('imputer', Imputer(missing_values='NaN', strategy='mean', axis=0)),
+            ('imputer', SimpleImputer(strategy='mean')),
             ('normalizer', StandardScaler())
         ])
         self.preprocessing.fit(numpy.array([self.extractFeaturesFromDatapoint(x) for x in data]).reshape(-1, 1))
