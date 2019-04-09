@@ -28,6 +28,18 @@ class TestCLI(unittest.TestCase):
         result_dict["vnd"] = set(result_dict["vnd"])
         self.assertEquals(result_dict, {"vnd": set(["und", "vnde", "vns"])})
 
+    def test_generate_candidates_with_lookup_generator(self):
+
+        runner = CliRunner()
+        with runner.isolated_filesystem():
+            with open('spellvardict.json', 'w') as f:
+                f.write('{"vnd": ["und", "vnde", "unde"]}')
+            result = runner.invoke(spellvardetection.cli.main, ['generate', '["vnd"]', '{"type": "lookup", "options": {"spellvar_dictionary": "spellvardict.json"}}', '-d', '["und", "unde", "vnde", "vns"]'])
+
+            result_dict = json.loads(result.output)
+            result_dict["vnd"] = set(result_dict["vnd"])
+            self.assertEquals(result_dict, {"vnd": set(["und", "vnde", "unde"])})
+
     def test_generate_candidates_with_internal_generator_from_file(self):
 
         runner = CliRunner()

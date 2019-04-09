@@ -23,7 +23,7 @@ class _AbstractCandidateGenerator(metaclass=abc.ABCMeta):
     def getCandidatesForWord(self, word):
         pass
 
-    def setDictionary(self, dictionary):
+    def setDictionary(self, dictionary: set):
 
         self.dictionary = dictionary
 
@@ -42,7 +42,7 @@ class GeneratorUnion(_AbstractCandidateGenerator):
 
     def __init__(self,
                  generators: Sequence[_AbstractCandidateGenerator],
-                 dictionary=None):
+                 dictionary: set=None):
 
         self.generators = generators
 
@@ -53,7 +53,7 @@ class GeneratorUnion(_AbstractCandidateGenerator):
 
         return set().union(*[generator.getCandidatesForWord(word) for generator in self.generators])
 
-    def setDictionary(self, dictionary):
+    def setDictionary(self, dictionary: set):
 
         for generator in self.generators:
             generator.setDictionary(dictionary)
@@ -65,7 +65,7 @@ class GeneratorPipeline(_AbstractCandidateGenerator):
     def __init__(self,
                  generator: _AbstractCandidateGenerator,
                  type_filter: _AbstractTypeFilter,
-                 dictionary=None):
+                 dictionary: set=None):
 
         self.generator = generator
         self.type_filter = type_filter
@@ -77,7 +77,7 @@ class GeneratorPipeline(_AbstractCandidateGenerator):
         candidates = self.generator.getCandidatesForWord(word)
         return self.type_filter.filterCandidates(word, candidates)
 
-    def setDictionary(self, dictionary):
+    def setDictionary(self, dictionary: set):
 
         self.generator.setDictionary(dictionary)
 
@@ -87,9 +87,12 @@ class LookupGenerator(_AbstractCandidateGenerator):
 
     name = 'lookup'
 
-    def __init__(self, spellvar_dictionary):
+    def __init__(self,
+                 spellvar_dictionary: dict
+    ):
+
         self.candidate_dictionary = {type_: frozenset(variants)
-                                     for type_, variants in spellvardetection.lib.util.load_from_file_if_string(spellvar_dictionary).items()}
+                                     for type_, variants in spellvar_dictionary.items()}
 
     def getCandidatesForWord(self, word):
 
@@ -99,7 +102,7 @@ class LookupGenerator(_AbstractCandidateGenerator):
 class _AbstractSimplificationGenerator(_AbstractCandidateGenerator):
 
     def __init__(self,
-                 dictionary=None,
+                 dictionary: set=None,
                  generator: _AbstractCandidateGenerator=None):
 
         self.generator = generator
@@ -123,7 +126,7 @@ class _AbstractSimplificationGenerator(_AbstractCandidateGenerator):
 
         return set.union(*[self.simpl_candidates.get(simpl_word, set([])) for simpl_word in simpl_words]).difference([word])
 
-    def setDictionary(self, dictionary):
+    def setDictionary(self, dictionary: set):
 
         self.simpl_candidates = {}
         for word in dictionary:
@@ -185,11 +188,11 @@ class SimplificationGenerator(_AbstractSimplificationGenerator):
         return word
 
     def __init__(self,
-                 ruleset,
-                 dictionary=None,
+                 ruleset: list,
+                 dictionary: set=None,
                  generator: _AbstractCandidateGenerator=None):
 
-        simplification_rules = spellvardetection.lib.util.load_from_file_if_string(ruleset)
+        simplification_rules = ruleset
 
         ## sort substitution rules internally: left side should be < then right side (except for deletion rules)
         simplification_rules = [sorted(rule, key=lambda t: (-len(t), t)) for rule in simplification_rules]
@@ -213,7 +216,9 @@ class SimplificationGenerator(_AbstractSimplificationGenerator):
 
 class _LevenshteinAutomatonGenerator(_AbstractCandidateGenerator):
 
-    def __init__(self, dictionary=None, transposition=False, merge_split=False, repetitions=False):
+    def __init__(self,
+                 dictionary: set=None,
+                 transposition=False, merge_split=False, repetitions=False):
 
         self.transposition = transposition
         self.merge_split = merge_split
@@ -234,7 +239,7 @@ class _LevenshteinAutomatonGenerator(_AbstractCandidateGenerator):
 
         return cands
 
-    def setDictionary(self, dictionary):
+    def setDictionary(self, dictionary: set):
 
         self.dict_automaton = DictAutomaton(dictionary)
 
@@ -243,7 +248,9 @@ class LevenshteinGenerator(_LevenshteinAutomatonGenerator):
 
     name = 'levenshtein'
 
-    def __init__(self, dictionary=None, max_dist=2, transposition=False, merge_split=False, repetitions=False):
+    def __init__(self, dictionary: set=None,
+                 max_dist=2,
+                 transposition=False, merge_split=False, repetitions=False):
 
         super().__init__(dictionary, transposition, merge_split, repetitions)
 
@@ -258,7 +265,10 @@ class LevenshteinNormalizedGenerator(_LevenshteinAutomatonGenerator):
 
     name = 'levenshtein_normalized'
 
-    def __init__(self, dictionary=None, dist_thresh=0.1, no_zero_dist=True, transposition=False, merge_split=False, repetitions=False, max_dist=5):
+    def __init__(self, dictionary: set=None,
+                 dist_thresh=0.1, no_zero_dist=True,
+                 transposition=False, merge_split=False, repetitions=False,
+                 max_dist=5):
 
         super().__init__(dictionary, transposition, merge_split, repetitions)
 
@@ -279,7 +289,7 @@ class _SetsimilarityGenerator(_AbstractCandidateGenerator):
 
     def __init__(self,
                  featureset_extractor: FeatureExtractorMixin,
-                 dictionary=None, sim_thresh=0.2):
+                 dictionary: set=None, sim_thresh=0.2):
 
         self.featureset_extractor = featureset_extractor
         self.sim_thresh = sim_thresh
@@ -308,7 +318,7 @@ class _SetsimilarityGenerator(_AbstractCandidateGenerator):
                 self.featureset_extractor.extractFeaturesFromDatapoint(cand)
             ) >= self.sim_thresh)])
 
-    def setDictionary(self, dictionary):
+    def setDictionary(self, dictionary: set):
 
         self.dictionary = dictionary
         self.feature_known = {}
@@ -324,7 +334,7 @@ class ProxinetteGenerator(_SetsimilarityGenerator):
 
     name = 'proxinette'
 
-    def create(dictionary=None, sim_thresh=0.01,
+    def create(dictionary: set=None, sim_thresh=0.01,
                feature_extractor_options={
                    'type': "ngram",
                    'options': {
