@@ -255,4 +255,3 @@ class ContextExtractor(BaseEstimator, TransformerMixin, FeatureExtractorMixin):
 from spellvardetection.util.factory import factory
 from functools import partial
 factory.add_object_hierarchy("extractor", FeatureExtractorMixin, create_func='create')
-createFeatureExtractor = partial(factory.create_from_name, "extractor")

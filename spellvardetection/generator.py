@@ -11,7 +11,7 @@ from typing import Sequence
 from spellvardetection.lib.lev_aut import DictAutomaton
 import spellvardetection.lib.util
 from spellvardetection.type_filter import _AbstractTypeFilter
-from spellvardetection.util.feature_extractor import FeatureExtractorMixin, createFeatureExtractor
+from spellvardetection.util.feature_extractor import FeatureExtractorMixin, NGramExtractor
 
 ### The common interface for candidate generators
 class _AbstractCandidateGenerator(metaclass=abc.ABCMeta):
@@ -335,18 +335,20 @@ class ProxinetteGenerator(_SetsimilarityGenerator):
     name = 'proxinette'
 
     def create(dictionary: set=None, sim_thresh=0.01,
-               feature_extractor_options={
-                   'type': "ngram",
-                   'options': {
-                       'min_ngram_size': 3, 'max_ngram_size': float('inf'),
-                       'skip_size': 0, 'gap': '',
-                       'bow': "$", 'eow': "$"
-                   }
-               }):
+               feature_extractor: FeatureExtractorMixin=None):
 
-        return ProxinetteGenerator(
-            createFeatureExtractor(feature_extractor_options),
-            dictionary, sim_thresh)
+        if feature_extractor is None:
+            feature_extractor = NGramExtractor(
+                min_ngram_size=3,
+                max_ngram_size=float('inf'),
+                skip_size=0,
+                gap='',
+                bow='$',
+                eow='$'
+            )
+
+        return ProxinetteGenerator(feature_extractor,
+                                   dictionary, sim_thresh)
 
 
     def getSetsim(self, seta, setb):
