@@ -1,8 +1,9 @@
  # -*- coding: utf-8 -*-
 
 import abc
-import json
+import inspect
 import itertools
+import json
 from threading import Lock
 
 import numpy
@@ -36,6 +37,29 @@ class FeatureExtractorMixin(metaclass=abc.ABCMeta):
         if not hasattr(cls, '__getstate__'):
             setattr(cls, '__getstate__', FeatureExtractorMixin.__getstate__)
 
+        ## add attributes cache and key to create function and set the cache
+        ## subclasses create method can add cache or key as parameter to the create method to override this behaviour
+        if hasattr(cls, 'create'):
+
+            func = getattr(cls, 'create')
+
+            sig = inspect.signature(getattr(cls, 'create'))
+            if "cache" not in sig.parameters and "key" not in sig.parameters:
+
+                def create_and_add_cache(*args, cache: dict=None, key=None, **kwargs):
+
+                    extractor = func(*args, **kwargs)
+                    if cache is not None:
+                        extractor.setFeatureCache(cache, key)
+                    return extractor
+
+                new_signature = list(sig.parameters.values()) + [
+                    inspect.Parameter("cache", inspect.Parameter.POSITIONAL_OR_KEYWORD, default=None, annotation=dict),
+                    inspect.Parameter("key", inspect.Parameter.POSITIONAL_OR_KEYWORD, default=None)]
+
+                create_and_add_cache.__signature__ = inspect.Signature(new_signature)
+
+                setattr(cls, 'create', create_and_add_cache)
 
     @abc.abstractmethod
     def create(**options):

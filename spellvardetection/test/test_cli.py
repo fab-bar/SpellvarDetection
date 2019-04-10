@@ -100,7 +100,7 @@ class TestCLI(unittest.TestCase):
 
             result = runner.invoke(spellvardetection.cli.main, [
                 'train', 'filter',
-                '{"type": "sklearn", "options": {"classifier_clsname": "sklearn.dummy.DummyClassifier", "classifier_params": {"strategy": "constant", "constant": 0}, "feature_extractors": [{"type": "surface", "name": "surface"}]}}',
+                '{"type": "sklearn", "options": {"classifier_clsname": "sklearn.dummy.DummyClassifier", "classifier_params": {"strategy": "constant", "constant": 0}, "feature_extractors": [{"type": "surface"}]}}',
                 'dummy.model',
                 '[["under", "vnder"]]',
                 '[["hans", "hand"]]'])
@@ -118,7 +118,7 @@ class TestCLI(unittest.TestCase):
 
             result = runner.invoke(spellvardetection.cli.main, [
                 'train', 'filter',
-                '{"type": "sklearn", "options": {"classifier_clsname": "sklearn.dummy.DummyClassifier", "classifier_params": {"strategy": "constant", "constant": 0}, "feature_extractors": [{"type": "context", "name": "context", "options": {"vector_type": "hyperwords", "vectorfile_name": "embeddings.txt"}}]}}',
+                '{"type": "sklearn", "options": {"classifier_clsname": "sklearn.dummy.DummyClassifier", "classifier_params": {"strategy": "constant", "constant": 0}, "feature_extractors": [{"type": "context", "options": {"vector_type": "hyperwords", "vectorfile_name": "embeddings.txt"}}]}}',
                 'dummy.model',
                 '[["under", "vnder"]]',
                 '[["hans", "hand"]]'])
@@ -140,7 +140,7 @@ class TestCLI(unittest.TestCase):
         if global_cache is not None:
             cli_options.extend(['-c', global_cache])
         cli_options.extend([
-            '{"type": "sklearn", "options": {"classifier_clsname": "__svm__", "feature_extractors": [{"type": "surface", "name": "surface", ' + feature_extractor_options + '}]}}',
+            '{"type": "sklearn", "options": {"classifier_clsname": "__svm__", "feature_extractors": [{"type": "surface", ' + feature_extractor_options + '}]}}',
             'dummy.model',
             positive_pairs,
             negative_pairs,
@@ -163,7 +163,7 @@ class TestCLI(unittest.TestCase):
 
             self._train_filter(runner,
                                ## features for "under, vnder" and "hans", "hand" are exchanged in the cache  - will train the opposite
-                               '"cache": {"[\\"under\\", \\"vnder\\"]": [["nn", "ds"], ["nn", "ds", "$$"], ["aa", "nn", "ds"], ["ds", "$$"], ["ds"]], "[\\"hand\\", \\"hans\\"]": [["$$", "uv"], ["$$", "uv", "nn"], ["uv", "nn", "dd"], ["uv", "nn"], ["uv"]]}'
+                               '"options": {"cache": {"[\\"under\\", \\"vnder\\"]": [["nn", "ds"], ["nn", "ds", "$$"], ["aa", "nn", "ds"], ["ds", "$$"], ["ds"]], "[\\"hand\\", \\"hans\\"]": [["$$", "uv"], ["$$", "uv", "nn"], ["uv", "nn", "dd"], ["uv", "nn"], ["uv"]]}}'
             )
             self._evaluate_trained_filter("sklearn", "dummy.model")
 
@@ -178,7 +178,7 @@ class TestCLI(unittest.TestCase):
                 f.write('{"[\\"under\\", \\"vnder\\"]": [["nn", "ds"], ["nn", "ds", "$$"], ["aa", "nn", "ds"], ["ds", "$$"], ["ds"]], "[\\"hand\\", \\"hans\\"]": [["$$", "uv"], ["$$", "uv", "nn"], ["uv", "nn", "dd"], ["uv", "nn"], ["uv"]]}')
 
             self._train_filter(runner,
-                               '"cache": "feature_cache.txt"'
+                               '"options": {"cache": "feature_cache.txt"}'
             )
             self._evaluate_trained_filter("sklearn", "dummy.model")
 
@@ -189,7 +189,7 @@ class TestCLI(unittest.TestCase):
         with runner.isolated_filesystem():
 
             self._train_filter(runner,
-                               '"key": "ngrams"',
+                               '"options": {"key": "ngrams"}',
                                ## features for "under, vnder" and "hans", "hand" are exchanged - will train the opposite
                                '{"[\\"under\\", \\"vnder\\"]": {"ngrams": [["nn", "ds"], ["nn", "ds", "$$"], ["aa", "nn", "ds"], ["ds", "$$"], ["ds"]]}, "[\\"hand\\", \\"hans\\"]": {"ngrams": [["$$", "uv"], ["$$", "uv", "nn"], ["uv", "nn", "dd"], ["uv", "nn"], ["uv"]]}}'
             )
@@ -205,7 +205,7 @@ class TestCLI(unittest.TestCase):
                 f.write('{"[\\"under\\", \\"vnder\\"]": {"ngrams": [["nn", "ds"], ["nn", "ds", "$$"], ["aa", "nn", "ds"], ["ds", "$$"], ["ds"]]}, "[\\"hand\\", \\"hans\\"]": {"ngrams": [["$$", "uv"], ["$$", "uv", "nn"], ["uv", "nn", "dd"], ["uv", "nn"], ["uv"]]}}')
 
             self._train_filter(runner,
-                               '"key": "ngrams"',
+                               '"options": {"key": "ngrams"}',
                                'feature_cache.txt'
             )
             self._evaluate_trained_filter("sklearn", "dummy.model")

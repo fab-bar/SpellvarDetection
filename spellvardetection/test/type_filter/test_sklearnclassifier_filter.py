@@ -46,14 +46,3 @@ class TestSKLearnClassifierBasedTypeFilter(unittest.TestCase):
         params = clf.get_params()
         self.assertEquals(params['classifier__C'], 2)
         self.assertEquals(params['classifier__gamma'], 0.1)
-
-    def test_create_with_feature_extractor(self):
-        clf = SKLearnClassifierBasedTypeFilter.create_for_training('__svm__', [
-            {'name': 'Feat1', 'type': 'surface',
-             'options': {'padding_char': 'Test'}}])
-
-        extractor_name, extractor = clf.feature_extractors[0]
-        self.assertEquals(extractor_name, 'Feat1')
-        self.assertTrue(isinstance(extractor, SurfaceExtractor))
-        self.assertEquals(extractor.padding_char, 'Test')
-

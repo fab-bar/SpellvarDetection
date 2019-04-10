@@ -6,6 +6,7 @@ try:
     import cPickle as pickle
 except ImportError:
     import pickle
+import typing
 
 from sklearn.base import ClassifierMixin
 from sklearn.pipeline import Pipeline, FeatureUnion
@@ -15,7 +16,7 @@ from sklearn.svm import SVC
 
 from imblearn.ensemble import BalancedBaggingClassifier
 
-from spellvardetection.util.feature_extractor import createFeatureExtractor, SurfaceExtractor
+from spellvardetection.util.feature_extractor import FeatureExtractorMixin, SurfaceExtractor
 import spellvardetection.lib.clusters
 from spellvardetection.lib.undir_spsim import UndirSpSim
 import spellvardetection.lib.util
@@ -55,7 +56,9 @@ class SKLearnClassifierBasedTypeFilter(_AbstractTrainableTypeFilter, _BaseCompos
         return SKLearnClassifierBasedTypeFilter.load(modelfile_name)
 
 
-    def create_for_training(classifier_clsname, feature_extractors, classifier_params=None):
+    def create_for_training(classifier_clsname,
+                            feature_extractors: typing.Sequence[FeatureExtractorMixin],
+                            classifier_params=None):
 
         ## instantiate classifier
         if classifier_clsname == '__svm__':
@@ -77,13 +80,7 @@ class SKLearnClassifierBasedTypeFilter(_AbstractTrainableTypeFilter, _BaseCompos
         if classifier_params is not None:
             classifier.set_params(**classifier_params)
 
-        ## instantiate feature extractors
-        extractors = []
-        for extractor in feature_extractors:
-            extractor_object = createFeatureExtractor(extractor)
-            if 'cache' in extractor:
-                extractor_object.setFeatureCache(extractor['cache'], key=extractor.get('key', None))
-            extractors.append((extractor['name'], extractor_object))
+        extractors = [(str(idx), extractor) for idx, extractor in enumerate(feature_extractors)]
 
         return SKLearnClassifierBasedTypeFilter(classifier, extractors)
 

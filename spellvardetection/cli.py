@@ -77,14 +77,13 @@ def train_filter(filter_settings, modelfile_name, positive_pairs, negative_pairs
 
     filter_settings = load_from_file_if_string(filter_settings)
 
+    ## if global feature cache is set - add this cache to all feature extractors
     if feature_cache is not None and 'feature_extractors' in filter_settings['options']:
         feature_cache = load_from_file_if_string(feature_cache)
 
-    for feature_extractor in filter_settings['options'].get('feature_extractors', []):
-        if 'cache' in feature_extractor:
-            feature_extractor['cache'] = load_from_file_if_string(feature_extractor['cache'])
-        elif feature_cache is not None and 'key' in feature_extractor:
-            feature_extractor['cache'] = feature_cache
+        for feature_extractor in filter_settings['options']['feature_extractors']:
+            if 'key' in feature_extractor.get('options', {}):
+                feature_extractor['options']['cache'] = feature_cache
 
     cand_filter = createTrainableTypeFilter(filter_settings)
     cand_filter.train(positive_pairs, negative_pairs)

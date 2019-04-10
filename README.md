@@ -42,7 +42,7 @@ Positive and negative examples are given in `example_data/gml_positive_pairs`
 and `example_data/gml_negative_pairs`. The trained model is written into the
 file `example_data/gml_spellvar.model`.
 
-    pipenv run spellvardetection train filter '{"type": "sklearn", "options": {"classifier_clsname": "__svm__", "feature_extractors": [{"type": "surface", "name": "surface"}]}}' example_data/gml_spellvar.model example_data/gml_positive_pairs example_data/gml_negative_pairs
+    pipenv run spellvardetection train filter '{"type": "sklearn", "options": {"classifier_clsname": "__svm__", "feature_extractors": [{"type": "surface"}]}}' example_data/gml_spellvar.model example_data/gml_positive_pairs example_data/gml_negative_pairs
 
 The model can then be used to filter spelling variants:
 
