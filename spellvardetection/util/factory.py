@@ -52,6 +52,10 @@ class Factory:
 
         def factory(object_options):
 
+            ## if object_options is already an instance of base_cls just return object_options
+            if isinstance(object_options, base_cls):
+                return object_options
+
             if self.option_parser is not None:
                 object_options = self.option_parser(object_options)
 
@@ -77,7 +81,7 @@ class Factory:
             # create objects that are needed as arguments
             for option in options.keys():
                 if options[option] is not None:
-                    if factory_objects[object_type]["annotations"][option] in self.factories_for_classes and options[option] and not isinstance(options[option], factory_objects[object_type]["annotations"][option]):
+                    if factory_objects[object_type]["annotations"][option] in self.factories_for_classes and options[option]:
                         options[option] = self.create_from_cls(factory_objects[object_type]["annotations"][option], options[option])
                     ## handle sequences of registered types
                     elif hasattr(factory_objects[object_type]["annotations"][option], '__origin__') and factory_objects[object_type]["annotations"][option].__origin__ is typing.Sequence:
