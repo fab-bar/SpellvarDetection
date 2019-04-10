@@ -70,6 +70,10 @@ class Factory:
             if missing_options:
                 raise ValueError('Missing options [' + ', '.join(missing_options) + '] for ' + type_name + ' of type ' + object_type)
 
+            additional_options = [name for name in options if name not in factory_objects[object_type]["annotations"]]
+            if additional_options:
+                raise ValueError('Given additional options [' + ', '.join(additional_options) + '] for ' + type_name + ' of type ' + object_type)
+
             # create objects that are needed as arguments
             for option in options.keys():
                 if options[option] is not None:
