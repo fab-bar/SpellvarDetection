@@ -7,7 +7,8 @@ import flask.json
 from spellvardetection.rest.app import app
 from spellvardetection.rest.db import get_db
 
-from spellvardetection.generator import createCandidateGenerator, _AbstractCandidateGenerator
+from spellvardetection.util.spellvarfactory import create_base_factory
+from spellvardetection.generator import _AbstractCandidateGenerator
 
 def get_generator(generator, dictionary):
 
@@ -22,7 +23,7 @@ def get_generator(generator, dictionary):
         return flask.json.jsonify(message='Could not load dictionary ' + dictionary), 400
 
     try:
-        generator_ = createCandidateGenerator(generator_description)
+        generator_ = create_base_factory().create_from_name("generator", generator_description)
         generator_.setDictionary(dict_['dict'])
 
     except Exception:

@@ -1,33 +1,38 @@
 import unittest
 
+from spellvardetection.util.spellvarfactory import create_base_factory
 import spellvardetection.generator
 
 class TestGeneratorFactory(unittest.TestCase):
 
+    factory = create_base_factory()
+
     def test_factory_with_unknown_type(self):
 
         with self.assertRaises(ValueError):
-            spellvardetection.generator.createCandidateGenerator({"type": "Unknown Type"})
+            self.factory.create_from_name("generator", {"type": "Unknown Type"})
 
 
     def test_factory_with_missing_options(self):
 
         with self.assertRaises(ValueError):
-            spellvardetection.generator.createCandidateGenerator({"type": "lookup"})
+            self.factory.create_from_name("generator", {"type": "lookup"})
 
     def test_factory_for_union_generator(self):
 
         self.assertIsInstance(
-            spellvardetection.generator.createCandidateGenerator({"type": "union", "options": {"generators": []}}),
+            self.factory.create_from_name("generator",
+                                     {"type": "union", "options": {"generators": []}}),
             spellvardetection.generator.GeneratorUnion
         )
 
     def test_factory_for_union_generator_with_generator_description_as_json(self):
 
-        generator = spellvardetection.generator.createCandidateGenerator({"type": "union", "options": {"generators": [
-            '{"type": "levenshtein"}',
-            '{"type": "lookup", "options": {"spellvar_dictionary": {"cat": ["abc"]}}}'
-        ]}})
+        generator = self.factory.create_from_name("generator", {
+            "type": "union", "options": {"generators": [
+                '{"type": "levenshtein"}',
+                '{"type": "lookup", "options": {"spellvar_dictionary": {"cat": ["abc"]}}}'
+            ]}})
 
         self.assertIsInstance(
             generator,
@@ -45,7 +50,7 @@ class TestGeneratorFactory(unittest.TestCase):
     def test_factory_for_lookup_generator(self):
 
         self.assertIsInstance(
-            spellvardetection.generator.createCandidateGenerator({
+            self.factory.create_from_name("generator", {
                 "type": "lookup",
                 "options": {'spellvar_dictionary': {'cat': set('abc')}}}),
             spellvardetection.generator.LookupGenerator
@@ -54,7 +59,7 @@ class TestGeneratorFactory(unittest.TestCase):
     def test_factory_for_gent_gml_simplification_generator(self):
 
         self.assertIsInstance(
-            spellvardetection.generator.createCandidateGenerator({
+            self.factory.create_from_name("generator", {
                 "type": "gent_gml_simplification",
                 "options": {'dictionary': ['cat']}}),
             spellvardetection.generator.GentGMLSimplificationGenerator
@@ -63,7 +68,7 @@ class TestGeneratorFactory(unittest.TestCase):
     def test_factory_for_simplification_generator(self):
 
         self.assertIsInstance(
-            spellvardetection.generator.createCandidateGenerator({
+            self.factory.create_from_name("generator", {
                 "type": "simplification",
                 "options": {'dictionary': ['cat'], 'ruleset': [('b', 'a'), ('g', 'gh')]}}),
             spellvardetection.generator.SimplificationGenerator
@@ -71,7 +76,7 @@ class TestGeneratorFactory(unittest.TestCase):
 
     def test_factory_for_simplification_generator_with_generator_object(self):
 
-        generator = spellvardetection.generator.createCandidateGenerator({
+        generator = self.factory.create_from_name("generator", {
             "type": "simplification",
                 "options": {
                     'dictionary': ['cat'],
@@ -81,7 +86,7 @@ class TestGeneratorFactory(unittest.TestCase):
 
     def test_factory_for_simplification_generator_with_generator_description(self):
 
-        generator = spellvardetection.generator.createCandidateGenerator({
+        generator = self.factory.create_from_name("generator", {
             "type": "simplification",
                 "options": {
                     'dictionary': ['cat'],
@@ -94,7 +99,7 @@ class TestGeneratorFactory(unittest.TestCase):
 
     def test_factory_for_simplification_generator_with_generator_description_as_json(self):
 
-        generator = spellvardetection.generator.createCandidateGenerator({
+        generator = self.factory.create_from_name("generator", {
             "type": "simplification",
                 "options": {
                     'dictionary': ['cat'],
@@ -108,7 +113,7 @@ class TestGeneratorFactory(unittest.TestCase):
 
     def test_factory_for_simplification_generator_with_ruleset_as_json(self):
 
-        generator = spellvardetection.generator.createCandidateGenerator({
+        generator = self.factory.create_from_name("generator", {
             "type": "simplification",
                 "options": {
                     'dictionary': ['cat'],
@@ -119,7 +124,7 @@ class TestGeneratorFactory(unittest.TestCase):
     def test_factory_for_levenshtein_generator(self):
 
         self.assertIsInstance(
-            spellvardetection.generator.createCandidateGenerator({
+            self.factory.create_from_name("generator", {
                 "type": "levenshtein",
                 "options": {'dictionary': ['cat']}}),
             spellvardetection.generator.LevenshteinGenerator
@@ -129,7 +134,7 @@ class TestGeneratorFactory(unittest.TestCase):
     def test_factory_for_levenshteinnormalized_generator(self):
 
         self.assertIsInstance(
-            spellvardetection.generator.createCandidateGenerator({
+            self.factory.create_from_name("generator", {
                 "type": "levenshtein_normalized",
                  "options": {'dictionary': ['cat']}}),
             spellvardetection.generator.LevenshteinNormalizedGenerator
@@ -138,7 +143,7 @@ class TestGeneratorFactory(unittest.TestCase):
     def test_factory_for_proxinette_generator(self):
 
         self.assertIsInstance(
-            spellvardetection.generator.createCandidateGenerator({
+            self.factory.create_from_name("generator", {
                 "type": "proxinette",
                 "options": {'dictionary': ['cat']}}),
             spellvardetection.generator.ProxinetteGenerator

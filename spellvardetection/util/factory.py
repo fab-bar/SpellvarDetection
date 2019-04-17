@@ -117,10 +117,3 @@ class Factory:
 
         class_name = self.classes_for_name[type_name]
         return self.create_from_cls(class_name, options)
-
-
-
-factory = Factory(option_parser=load_from_file_if_string)
-factory.add_factory_method(list, load_from_file_if_string)
-factory.add_factory_method(dict, load_from_file_if_string)
-factory.add_factory_method(set, lambda x: set(load_from_file_if_string(x)))

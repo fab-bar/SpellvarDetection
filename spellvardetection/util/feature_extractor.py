@@ -250,8 +250,3 @@ class ContextExtractor(BaseEstimator, TransformerMixin, FeatureExtractorMixin):
     def transform(self, data):
 
         return self.preprocessing.transform(numpy.array([self.extractFeaturesFromDatapoint(x) for x in data]).reshape(-1, 1))
-
-## Factory for feature extractors
-from spellvardetection.util.factory import factory
-from functools import partial
-factory.add_object_hierarchy("extractor", FeatureExtractorMixin, create_func='create')

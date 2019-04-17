@@ -9,7 +9,7 @@ from sklearn.externals import joblib
 from sklearn.dummy import DummyClassifier
 
 import spellvardetection.cli
-from spellvardetection.type_filter import createTypeFilter
+from spellvardetection.util.spellvarfactory import create_base_factory
 
 class TestCLI(unittest.TestCase):
 
@@ -152,7 +152,7 @@ class TestCLI(unittest.TestCase):
     def _evaluate_trained_filter(self, type_, modelfile):
 
         ## test that the model will predict "vnd" "vns" as negative and "und", "vnd" as positive
-        filter_ = createTypeFilter({"type": type_, "options": {"modelfile_name": modelfile}})
+        filter_ = create_base_factory().create_from_name("type_filter", {"type": type_, "options": {"modelfile_name": modelfile}})
         result = filter_.filterCandidates("vnd", ["und", "vns"])
         self.assertEquals(result, set(["und"]))
 

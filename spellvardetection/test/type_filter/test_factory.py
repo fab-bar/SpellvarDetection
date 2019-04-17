@@ -1,32 +1,35 @@
 import unittest
 
+from spellvardetection.util.spellvarfactory import create_base_factory
 import spellvardetection.type_filter
 
 class TestGeneratorFactory(unittest.TestCase):
 
+    factory = create_base_factory()
+
     def test_factory_with_unknown_type(self):
 
         with self.assertRaises(ValueError):
-            spellvardetection.type_filter.createTypeFilter({"type": "Unknown Type"})
+            self.factory.create_from_name("type_filter", {"type": "Unknown Type"})
 
     def test_train_factory_with_unknown_type(self):
 
         with self.assertRaises(ValueError):
-            spellvardetection.type_filter.createTrainableTypeFilter({"type": "Unknown Type"})
+            self.factory.create_from_name("trainable_type_filter", {"type": "Unknown Type"})
 
     def test_factory_with_missing_options(self):
 
         with self.assertRaises(ValueError):
-            spellvardetection.type_filter.createTypeFilter({"type": "sklearn"})
+            self.factory.create_from_name("type_filter", {"type": "sklearn"})
 
     def test_train_factory_with_missing_options(self):
 
         with self.assertRaises(ValueError):
-            spellvardetection.type_filter.createTrainableTypeFilter({"type": "sklearn"})
+            self.factory.create_from_name("trainable_type_filter", {"type": "sklearn"})
 
     def test_train_factory_is_not_trained(self):
 
-        filter_ = spellvardetection.type_filter.createTrainableTypeFilter({
+        filter_ = self.factory.create_from_name("trainable_type_filter", {
             "type": "sklearn",
             "options": {"classifier_clsname": "__svm__", "feature_extractors": []}})
         with self.assertRaises(RuntimeError):
@@ -35,7 +38,7 @@ class TestGeneratorFactory(unittest.TestCase):
     def test_train_factory_for_sklearn_filter(self):
 
         self.assertIsInstance(
-            spellvardetection.type_filter.createTrainableTypeFilter({
+            self.factory.create_from_name("trainable_type_filter", {
                 "type": "sklearn",
                 "options": {"classifier_clsname": "__svm__", "feature_extractors": []}}),
             spellvardetection.type_filter.SKLearnClassifierBasedTypeFilter
