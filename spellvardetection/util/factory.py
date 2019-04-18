@@ -1,5 +1,8 @@
+import collections
 import inspect
 import typing
+
+import typing_inspect
 
 from spellvardetection.lib.util import load_from_file_if_string
 
@@ -84,10 +87,10 @@ class Factory:
                     if factory_objects[object_type]["annotations"][option] in self.factories_for_classes and options[option]:
                         options[option] = self.create_from_cls(factory_objects[object_type]["annotations"][option], options[option])
                     ## handle sequences of registered types
-                    elif hasattr(factory_objects[object_type]["annotations"][option], '__origin__') and factory_objects[object_type]["annotations"][option].__origin__ is typing.Sequence:
+                    elif typing_inspect.get_origin(factory_objects[object_type]["annotations"][option]) in [typing.Sequence, collections.abc.Sequence]:
                         ## only handle sequences with objects of the same type
-                        if len(factory_objects[object_type]["annotations"][option].__args__) == 1:
-                            the_type = factory_objects[object_type]["annotations"][option].__args__[0]
+                        if len(typing_inspect.get_args(factory_objects[object_type]["annotations"][option])) == 1:
+                            the_type = typing_inspect.get_args(factory_objects[object_type]["annotations"][option])[0]
                             if the_type in self.factories_for_classes:
                                 options[option] = [self.create_from_cls(the_type, opt) for opt in options[option]]
 
