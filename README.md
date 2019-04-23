@@ -52,6 +52,13 @@ It can also be intergrated into a generator pipeline directly:
 
     pipenv run spellvardetection generate '["vnd"]' example_data/svm_pipeline.json --dictionary '["und", "vnde", "vnnde", "unde", "vns"]'
 
+The commands `generate` and `filter` both have the option `-p` that allows to
+use multiple processes to work through a list of types in parallel. While this
+can considerably speed up candidate generation and filtering, each process uses
+its own copy of the used generators and filters, so this can use a lot of
+memory.
+
+    pipenv run spellvardetection generate '["vnd", "uns"]' example_data/svm_pipeline.json --dictionary '["und", "vnde", "vnnde", "unde", "vns"]' -p 2
 
 ## REST API
 

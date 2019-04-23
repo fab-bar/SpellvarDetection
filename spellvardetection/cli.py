@@ -22,11 +22,18 @@ def main(ctx):
 @click.argument('generator_settings')
 @click.option('-d', '--dictionary')
 @click.option('-o', '--output_file', type=click.File('w'))
-def generate(ctx, vocabulary, generator_settings, dictionary, output_file):
+@click.option('-p', '--max_processes', type=click.INT, default=1)
+def generate(ctx, vocabulary, generator_settings, dictionary, output_file, max_processes):
 
     vocabulary = load_from_file_if_string(vocabulary)
     settings = load_from_file_if_string(generator_settings)
     generator = ctx.obj['factory'].create_from_name("generator", generator_settings)
+
+    ## 0 or negative numbers for allowing as many processes as cores
+    if max_processes < 1:
+        max_processes = multiprocessing.cpu_count()
+
+    generator.setMaxProcesses(max_processes)
 
     if dictionary:
         generator.setDictionary(load_from_file_if_string(dictionary))
@@ -49,14 +56,18 @@ def apply_filter(word_candidates, cand_filter):
 @click.argument('candidates')
 @click.argument('filter_settings')
 @click.option('-o', '--output_file', type=click.File('w'))
-def filter_(ctx, candidates, filter_settings, output_file):
+@click.option('-p', '--max_processes', type=click.INT, default=1)
+def filter_(ctx, candidates, filter_settings, output_file, max_processes):
 
     candidates = load_from_file_if_string(candidates)
     settings = load_from_file_if_string(filter_settings)
     cand_filter = ctx.obj['factory'].create_from_name("type_filter", filter_settings)
 
+    ## 0 or negative numbers for allowing as many processes as cores
+    if max_processes < 1:
+        max_processes = multiprocessing.cpu_count()
 
-    with multiprocessing.Pool(multiprocessing.cpu_count()) as pool:
+    with multiprocessing.Pool(max_processes) as pool:
 
         filtered = pool.map(
             functools.partial(apply_filter, cand_filter=cand_filter),

@@ -16,6 +16,11 @@ from spellvardetection.util.feature_extractor import FeatureExtractorMixin, NGra
 ### The common interface for candidate generators
 class _AbstractCandidateGenerator(metaclass=abc.ABCMeta):
 
+    max_processes = 1
+
+    def setMaxProcesses(self, processes):
+        self.max_processes = processes
+
     def __getWordCandidatesPair(self, word):
         return (word, self.getCandidatesForWord(word))
 
@@ -29,12 +34,18 @@ class _AbstractCandidateGenerator(metaclass=abc.ABCMeta):
 
     def getCandidatesForWords(self, words):
 
-        with multiprocessing.Pool(multiprocessing.cpu_count()) as pool:
+        ## only use multiprocessing if number of max_processes is not 1
+        if self.max_processes == 1:
             return {
-                word: candidates for word, candidates in pool.map(
-                    functools.partial(spellvardetection.lib.util._unwrap_self, function_name="_AbstractCandidateGenerator__getWordCandidatesPair"),
-                    zip([self]*len(words), words))
+                word: candidates for word, candidates in map(self.__getWordCandidatesPair, words)
             }
+        else:
+            with multiprocessing.Pool(self.max_processes) as pool:
+                return {
+                    word: candidates for word, candidates in pool.map(
+                        functools.partial(spellvardetection.lib.util._unwrap_self, function_name="_AbstractCandidateGenerator__getWordCandidatesPair"),
+                        zip([self]*len(words), words))
+                }
 
 class GeneratorUnion(_AbstractCandidateGenerator):
 

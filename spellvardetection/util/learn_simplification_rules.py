@@ -33,7 +33,7 @@ def getRulesFromPair(pair):
     return { rule['rule']: {'left_context': rule['left_context'], 'right_context': rule['right_context'], 'pair': set(pair) } for rule in getRules(pair[0], pair[1]) }
 
 
-def getRulesAndFreqFromSpellvars(type_variants):
+def getRulesAndFreqFromSpellvars(type_variants, max_processes=None):
 
     dictionary = set(type_variants.keys())
     for word in type_variants.keys():
@@ -41,6 +41,7 @@ def getRulesAndFreqFromSpellvars(type_variants):
 
     ## extract all possible pairs
     generator = LevenshteinGenerator(dictionary, 1, merge_split=True)
+    generator.setMaxProcesses(max_processes)
     cand_pairs = getPairsFromSpellvardict(generator.getCandidatesForWords(dictionary))
 
     ## extract all positive pairs that would be generated
@@ -50,11 +51,11 @@ def getRulesAndFreqFromSpellvars(type_variants):
     false_pairs = cand_pairs.difference(true_pairs)
 
     # Getting true rules
-    with multiprocessing.Pool(multiprocessing.cpu_count()) as pool:
+    with multiprocessing.Pool(max_processes) as pool:
         true_simplification_rules = pool.map(getRulesFromPair, true_pairs)
 
     # Getting all rules
-    with multiprocessing.Pool(multiprocessing.cpu_count()) as pool:
+    with multiprocessing.Pool(max_processes) as pool:
         false_simplification_rules = pool.map(getRulesFromPair, false_pairs)
 
     # Collect rules
