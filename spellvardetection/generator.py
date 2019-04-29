@@ -300,10 +300,11 @@ class _SetsimilarityGenerator(_AbstractCandidateGenerator):
 
     def __init__(self,
                  featureset_extractor: FeatureExtractorMixin,
-                 dictionary: set=None, sim_thresh=0.2):
+                 dictionary: set=None, sim_thresh=0.2, add_similarity=False):
 
         self.featureset_extractor = featureset_extractor
         self.sim_thresh = sim_thresh
+        self.add_similarity = add_similarity
 
         if dictionary is not None:
             self.setDictionary(dictionary)
@@ -321,24 +322,32 @@ class _SetsimilarityGenerator(_AbstractCandidateGenerator):
         sim_cands = set()
         for feat in texttype_feat:
             if feat in self.feature_known:
-                sim_cands.update(self.feature_known[feat])
+                sim_cands.update([self.dictionary[index] for index in self.feature_known[feat]])
 
-        return set([cand for cand in sim_cands if (cand != texttype) and (
-            self.getSetsim(
-                self.featureset_extractor.extractFeaturesFromDatapoint(texttype),
-                self.featureset_extractor.extractFeaturesFromDatapoint(cand)
-            ) >= self.sim_thresh)])
+        sim_cands.discard(texttype)
+        candidates = [(cand,
+                       self.getSetsim(
+                           texttype_feat,
+                           self.featureset_extractor.extractFeaturesFromDatapoint(cand)))
+        for cand in sim_cands]
+        candidates = filter(lambda cand: cand[1] >= self.sim_thresh, candidates)
+
+        if not self.add_similarity:
+            candidates = map(lambda cand: cand[0], candidates)
+
+        return set(candidates)
 
     def setDictionary(self, dictionary: set):
 
         self.dictionary = dictionary
         self.feature_known = {}
-        for k_type in self.dictionary:
+
+        for index, k_type in enumerate(self.dictionary):
             k_feat = self.featureset_extractor.extractFeaturesFromDatapoint(k_type)
             for feat in k_feat:
                 if feat not in self.feature_known:
                     self.feature_known[feat] = []
-                self.feature_known[feat].append(k_type)
+                self.feature_known[feat].append(index)
 
 
 class ProxinetteGenerator(_SetsimilarityGenerator):
@@ -346,7 +355,8 @@ class ProxinetteGenerator(_SetsimilarityGenerator):
     name = 'proxinette'
 
     def create(dictionary: set=None, sim_thresh=0.01,
-               feature_extractor: FeatureExtractorMixin=None):
+               feature_extractor: FeatureExtractorMixin=None,
+               add_similarity=False):
 
         if feature_extractor is None:
             feature_extractor = NGramExtractor(
@@ -359,7 +369,8 @@ class ProxinetteGenerator(_SetsimilarityGenerator):
             )
 
         return ProxinetteGenerator(feature_extractor,
-                                   dictionary, sim_thresh)
+                                   dictionary, sim_thresh,
+                                   add_similarity)
 
 
     def getSetsim(self, seta, setb):
@@ -378,7 +389,8 @@ class _AbstractJaccardSimilarityGenerator(_SetsimilarityGenerator):
 
     @classmethod
     def create(cls, dictionary: set=None, sim_thresh=0.2,
-               feature_extractor: FeatureExtractorMixin=None):
+               feature_extractor: FeatureExtractorMixin=None,
+               add_similarity=False):
 
         if feature_extractor is None:
             feature_extractor = NGramExtractor(
@@ -393,7 +405,8 @@ class _AbstractJaccardSimilarityGenerator(_SetsimilarityGenerator):
 
         return cls(
             feature_extractor,
-            dictionary, sim_thresh)
+            dictionary, sim_thresh,
+            add_similarity)
 
 
     def getSetsim(self, seta, setb):

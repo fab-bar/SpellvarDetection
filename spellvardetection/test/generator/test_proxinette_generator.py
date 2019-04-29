@@ -17,6 +17,11 @@ class TestProxinetteGenerator(unittest.TestCase):
         generator = ProxinetteGenerator.create(['cat', 'mat', 'hat', 'dog', 'apple', 'flat'], 0.09)
         self.assertEqual(generator.getCandidatesForWords(['rat', 'dog']), {'rat': set(), 'dog': set()})
 
+    def test_getCandidates_with_similarity(self):
+
+        generator = ProxinetteGenerator.create(['cat', 'mat', 'hat', 'dog', 'apple', 'flat'], 0.08, add_similarity=True)
+        self.assertEqual(generator.getCandidatesForWords(['rat', 'dog']), {'rat': set([('cat', 0.08333333333333333), ('mat', 0.08333333333333333), ('hat', 0.08333333333333333), ('flat', 0.08333333333333333)]), 'dog': set()})
+
     def test_set_dictionary(self):
         generator = ProxinetteGenerator.create(['cat', 'mat', 'hat', 'dog', 'apple', 'flat'], 0.08)
         generator.setDictionary(['cat', 'mat', 'dog', 'apple'])
