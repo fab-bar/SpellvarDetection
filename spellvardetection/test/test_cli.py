@@ -229,3 +229,52 @@ class TestCLI(unittest.TestCase):
             result_dict = json.loads(result.output)
             result_dict["vnd"] = set(result_dict["vnd"])
             self.assertEquals(result_dict, {"vnd": set(["und", "vnde"])})
+
+    def test_evaluate(self):
+
+        tokens = [
+            {'type': 'dyt', 'variants': ['dit']},
+            {'type': 'is', 'variants': ['ist']}
+        ]
+        predictions = {'dyt': ['dit', 'ist'], 'is': ['dit', 'ist']}
+
+        runner = CliRunner()
+        result = runner.invoke(spellvardetection.cli.utils, ['evaluate', json.dumps(tokens), json.dumps(predictions)])
+
+        self.assertEquals(result.output, '0.50|1.00|0.67|2.00+-0.00\n')
+
+
+    def test_evaluate_with_dict(self):
+
+        tokens = [
+            {'type': 'dyt', 'variants': ['dit']},
+            {'type': 'is', 'variants': ['ist']}
+        ]
+        predictions = {'dyt': ['dit', 'ist'], 'is': ['dit', 'ist']}
+        dict_ = ['ist']
+
+        runner = CliRunner()
+        result = runner.invoke(spellvardetection.cli.utils, ['evaluate', json.dumps(tokens), json.dumps(predictions),
+                                                             '--dict_file', json.dumps(dict_)
+        ])
+
+        self.assertEquals(result.output, '0.50|1.00|0.67|1.00+-0.00\n')
+
+
+    def test_evaluate_with_known(self):
+
+        tokens = [
+            {'type': 'dyt', 'variants': ['dit']},
+            {'type': 'is', 'variants': ['ist']},
+            {'type': 'is', 'variants': ['ist']},
+        ]
+        predictions = {'dyt': ['dit', 'ist'], 'is': ['dit', 'ist']}
+        dict_ = ['ist']
+        known = ['dyt']
+
+        runner = CliRunner()
+        result = runner.invoke(spellvardetection.cli.utils, ['evaluate', json.dumps(tokens), json.dumps(predictions),
+                                                             '--dict_file', json.dumps(dict_), '--known_file', json.dumps(known)
+        ])
+
+        self.assertEquals(result.output, '1.00|1.00|1.00|1.00+-0.00\n')

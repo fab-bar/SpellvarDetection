@@ -58,7 +58,7 @@ class TestEvaluate(unittest.TestCase):
 
         result = evaluate(tokens)
 
-        self.assertEquals(result, '1.00|1.00|1.00|1.00+-0.00')
+        self.assertEquals(result, [1, 1, 1, 1, 0])
 
 
     def test_evaluate_perfect_recall(self):
@@ -69,7 +69,7 @@ class TestEvaluate(unittest.TestCase):
 
         result = evaluate(tokens)
 
-        self.assertEquals(result, '0.50|1.00|0.67|2.00+-0.00')
+        self.assertEquals(result, [0.5, 1, 0.6666666666666666, 2, 0])
 
 
     def test_evaluate_empty_predictions(self):
@@ -80,7 +80,7 @@ class TestEvaluate(unittest.TestCase):
 
         result = evaluate(tokens)
 
-        self.assertEquals(result, '1.00|0.00|0.00|0.00+-0.00')
+        self.assertEquals(result, [1, 0, 0, 0, 0])
 
 
     def test_evaluate_only_false_predictions(self):
@@ -91,4 +91,4 @@ class TestEvaluate(unittest.TestCase):
 
         result = evaluate(tokens)
 
-        self.assertEquals(result, '0.00|0.00|0.00|1.00+-0.00')
+        self.assertEquals(result, [0, 0, 0, 1, 0])

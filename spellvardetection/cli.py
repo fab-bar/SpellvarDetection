@@ -4,7 +4,7 @@ import multiprocessing
 
 import click
 
-from .lib.util import load_from_file_if_string
+from .lib.util import load_from_file_if_string, evaluate
 from .util.spellvarfactory import create_base_factory
 
 @click.group()
@@ -106,3 +106,39 @@ def train_filter(ctx, filter_settings, modelfile_name, positive_pairs, negative_
     cand_filter = ctx.obj['factory'].create_from_name("trainable_type_filter", filter_settings)
     cand_filter.train(positive_pairs, negative_pairs)
     cand_filter.save(modelfile_name)
+
+
+@main.group()
+def utils():
+    pass
+
+
+@utils.command('evaluate')
+@click.argument('gold_file')
+@click.argument('prediction_file')
+@click.option('-d', '--dict_file')
+@click.option('-k', '--known_file')
+@click.option('-f', '--freq_file')
+def evaluate_command(gold_file, prediction_file, dict_file=None, known_file=None, freq_file=None):
+
+    tokens = load_from_file_if_string(gold_file)
+    predictions_type = load_from_file_if_string(prediction_file)
+
+    # add type-based predictions to tokens
+    tokens = [{**token, **{'filtered_candidates': predictions_type.get(token['type'], [])}} for token in tokens]
+
+    dictionary = set()
+    if dict_file:
+        dictionary = set(load_from_file_if_string(dict_file))
+
+    known_dict = set()
+    if known_file:
+        known_dict = set(load_from_file_if_string(known_file))
+
+    freq_dict = {}
+    if freq_file:
+        freq_dict = load_from_file_if_string(freq_file)
+
+    print(
+        "{:.2f}|{:.2f}|{:.2f}|{:.2f}+-{:.2f}".format(
+            *evaluate(tokens, dictionary, known_dict, freq_dict)))

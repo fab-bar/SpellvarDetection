@@ -137,12 +137,6 @@ def evaluate(tokens, dictionary={}, known_dict={}, freq_dict={}):
     recall = tp/(tp + fn) if tp + fn > 0 else 1
     f1 = 2*(precision * recall)/(precision + recall) if precision + recall > 0 else 0
 
-    return "|".join(
-        map(lambda s: str("%.2f" % s),
-            [
-                precision,
-                recall,
-                f1
-            ])) + "|" + str(
-                "%.2f" % statistics.mean(number_of_candidates)) + '+-' + str(
-                "%.2f" % statistics.stdev(number_of_candidates))
+    return [precision, recall, f1,
+            statistics.mean(number_of_candidates),
+            statistics.stdev(number_of_candidates)]
