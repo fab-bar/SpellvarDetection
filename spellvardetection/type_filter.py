@@ -2,6 +2,7 @@
 
 import abc
 import importlib
+import os
 try:
     import cPickle as pickle
 except ImportError:
@@ -52,7 +53,7 @@ class SKLearnClassifierBasedTypeFilter(_AbstractTrainableTypeFilter, _BaseCompos
 
     name = 'sklearn'
 
-    def create(modelfile_name):
+    def create(modelfile_name: os.PathLike):
         return SKLearnClassifierBasedTypeFilter.load(modelfile_name)
 
 
@@ -153,7 +154,7 @@ class ClusterTypeFilter(_AbstractTypeFilter):
 
     name = 'cluster'
 
-    def create(cluster_type, cluster_file, unknown_type=None, remove_candidates_without_cluster=False):
+    def create(cluster_type, cluster_file: os.PathLike, unknown_type=None, remove_candidates_without_cluster=False):
 
         clusters = spellvardetection.lib.clusters.WordClusters(cluster_type, cluster_file, unknown_type)
         return ClusterTypeFilter(clusters, remove_candidates_without_cluster)
@@ -190,7 +191,7 @@ class UndirSpSimTypeFilter(_TrainableSimilarityFilter):
 
     name = 'uspsim'
 
-    def create(spsim_filename,
+    def create(spsim_filename: os.PathLike,
                sim_thresh=0.9,
                ignore_case=True,
                ignore_accents=True,

@@ -4,6 +4,7 @@ import abc
 import inspect
 import itertools
 import json
+import os
 from threading import Lock
 
 import numpy
@@ -214,7 +215,7 @@ class ContextExtractor(BaseEstimator, TransformerMixin, FeatureExtractorMixin):
 
     name = 'context'
 
-    def create(vector_type, vectorfile_name, simplfile_name=None, missing_words=None):
+    def create(vector_type, vectorfile_name: os.PathLike, simplfile_name=None, missing_words=None):
 
         embeddings = spellvardetection.lib.embeddings.WordEmbeddings(vector_type, vectorfile_name, simplfile_name, missing_words)
         return ContextExtractor(embeddings)

@@ -91,3 +91,17 @@ dictionary `gml`.
 Using post, candidates can be generated for multiple words:
 
     curl --header "Content-Type: application/json" --request POST --data '["vnd", "vnnd"]' http://127.0.0.1:5000/generate/lev1/gml
+
+Resources like trained classifiers or brown clusters can be loaded from files.
+Filenames can be given as absolute paths or -- easier -- as relative paths which
+are relative to the resource folder in the apps instance folder.
+Warning: resources might be loaded using pickle, which is not safe. So make sure
+to include only files from trusted sources into your instance folder.
+
+The resources in the instance folder can be managed using the command line interface:
+
+    flask resources add example_data/gml.brown
+    flask resources list
+
+    flask db add-generator lev1brown '{"type": "pipeline", "options": {"generator": {"type": "levenshtein", "options": {"max_dist": 1, "repetitions": "True"}}, "type_filter": {"type": "cluster", "options": {"cluster_type": "brown", "cluster_file": "gml.brown"}}}}'
+    curl http://127.0.0.1:5000/generate/lev1brown/gml/vnd

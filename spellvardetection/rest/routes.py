@@ -1,14 +1,12 @@
 import os
 import json
 
-from flask import request
-from flask import Blueprint
+from flask import Blueprint, current_app, request
 
 import flask.json
 
 from spellvardetection.rest.db import get_db
 
-from spellvardetection.util.spellvarfactory import create_base_factory
 from spellvardetection.generator import _AbstractCandidateGenerator
 
 app_blueprint = Blueprint('app', __name__)
@@ -26,7 +24,7 @@ def get_generator(generator, dictionary):
         return flask.json.jsonify(message='Could not load dictionary ' + dictionary), 400
 
     try:
-        generator_ = create_base_factory().create_from_name("generator", generator_description)
+        generator_ = current_app.config['FACTORY'].create_from_name("generator", generator_description)
         generator_.setDictionary(dict_['dict'])
 
     except Exception:
