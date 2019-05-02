@@ -3,27 +3,21 @@ import os
 import shutil
 
 import click
-from flask import g
+from flask import g, current_app
 from flask.cli import AppGroup
 from tinymongo import TinyMongoClient
 
-from spellvardetection.rest.app import app
-
 from spellvardetection.lib.util import load_from_file_if_string
-
-db_path = os.path.join(app.instance_path, 'resources.db')
 
 def get_db():
     if 'db' not in g:
-        connection = TinyMongoClient(db_path)
+        connection = TinyMongoClient(current_app.config['DATABASE'])
         g.db = connection.spellvardetection
 
     return g.db
 
 def close_db(e=None):
     db = g.pop('db', None)
-
-app.teardown_appcontext(close_db)
 
 ### CLI for database management
 
@@ -34,7 +28,7 @@ def clear_db_command():
     """Clear the existing data."""
 
     try:
-        shutil.rmtree(db_path)
+        shutil.rmtree(current_app.config['DATABASE'])
     except OSError:
         pass
 
@@ -76,4 +70,7 @@ def add_generator_command(name, generator):
             }
         )
 
-app.cli.add_command(db_cli)
+
+def init_app(app):
+    app.teardown_appcontext(close_db)
+    app.cli.add_command(db_cli)

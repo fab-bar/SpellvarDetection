@@ -2,13 +2,16 @@ import os
 import json
 
 from flask import request
+from flask import Blueprint
+
 import flask.json
 
-from spellvardetection.rest.app import app
 from spellvardetection.rest.db import get_db
 
 from spellvardetection.util.spellvarfactory import create_base_factory
 from spellvardetection.generator import _AbstractCandidateGenerator
+
+app_blueprint = Blueprint('app', __name__)
 
 def get_generator(generator, dictionary):
 
@@ -33,7 +36,7 @@ def get_generator(generator, dictionary):
     return generator_
 
 
-@app.route('/generate/<generator>/<dictionary>/<text_type>')
+@app_blueprint.route('/generate/<generator>/<dictionary>/<text_type>')
 def generate_candidates(generator, dictionary, text_type):
 
     generator_ = get_generator(generator, dictionary)
@@ -44,7 +47,7 @@ def generate_candidates(generator, dictionary, text_type):
         return flask.json.dumps(list(generator_.getCandidatesForWord(text_type)))
 
 
-@app.route('/generate/<generator>/<dictionary>', methods=['POST'])
+@app_blueprint.route('/generate/<generator>/<dictionary>', methods=['POST'])
 def generate_candidates_for_multiple(generator, dictionary):
 
     generator_ = get_generator(generator, dictionary)
