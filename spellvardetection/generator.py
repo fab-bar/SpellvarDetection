@@ -213,15 +213,14 @@ class SimplificationGenerator(_AbstractSimplificationGenerator):
             rule_dict[lhs].add(rhs)
         self.simplification_rules = []
         while rule_dict:
-            lhs = sorted(rule_dict.keys())[0]
+            ## sort rules by length and alphabet of lhs
+            lhs = sorted(rule_dict.keys(), key=lambda t: (-len(t), t))[0]
             rhs_list = rule_dict.pop(lhs)
             rhsides = sorted(rhs_list)
             target = rhsides.pop()
             self.simplification_rules.append((lhs, target))
             for rhs in rhsides:
                 rule_dict[rhs].add(target)
-        ## sort rules by length and alphabet (to apply deletion rules first)
-        self.simplification_rules = sorted(self.simplification_rules, key=lambda t: (-len(t[0]), t[0]))
 
         super().__init__(dictionary, generator)
 
