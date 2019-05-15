@@ -325,3 +325,35 @@ class TestNGramExtractor(unittest.TestCase):
                 tuple('#co'), tuple('com'), tuple('omp'), tuple('mpa'), tuple('par'), tuple('ara'), tuple('rab'), tuple('abl'), tuple('ble'), tuple('le#')
             ])
         )
+
+    def test_extract_all_ngrams_with_padding(self):
+
+        ext = NGramExtractor(min_ngram_size=3, max_ngram_size=float('inf'), skip_size=0, gap='', bow='#', eow='#')
+
+        self.assertEquals(
+            ext.extractFeaturesFromDatapoint('comparable'),
+            set([
+                tuple('#comparable#'),
+                tuple('#comparable'), tuple('comparable#'),
+                tuple('#comparabl'), tuple('comparable'), tuple('omparable#'),
+                tuple('#comparab'), tuple('comparabl'), tuple('omparable'), tuple('mparable#'),
+                tuple('#compara'), tuple('comparab'), tuple('omparabl'), tuple('mparable'), tuple('parable#'),
+                tuple('#compar'), tuple('compara'), tuple('omparab'), tuple('mparabl'), tuple('parable'), tuple('arable#'),
+                tuple('#compa'), tuple('compar'), tuple('ompara'), tuple('mparab'), tuple('parabl'), tuple('arable'), tuple('rable#'),
+                tuple('#comp'), tuple('compa'), tuple('ompar'), tuple('mpara'), tuple('parab'), tuple('arabl'), tuple('rable'), tuple('able#'),
+                tuple('#com'), tuple('comp'), tuple('ompa'), tuple('mpar'), tuple('para'), tuple('arab'), tuple('rabl'), tuple('able'), tuple('ble#'),
+                tuple('#co'), tuple('com'), tuple('omp'), tuple('mpa'), tuple('par'), tuple('ara'), tuple('rab'), tuple('abl'), tuple('ble'), tuple('le#')
+            ])
+        )
+
+    def test_extract_all_ngrams(self):
+
+        ext = NGramExtractor(min_ngram_size=1, max_ngram_size=2, skip_size=1, gap='', bow='', eow='')
+
+        self.assertEquals(
+            ext.extractFeaturesFromDatapoint('#abcd#'),
+            set([
+                tuple('#a'), tuple('#b'), tuple('ab'), tuple('ac'), tuple('bc'), tuple('bd'), tuple('cd'), tuple('c#'), tuple('d#'),
+                tuple('#'), tuple('a'), tuple('b'), tuple('c'), tuple('d'), tuple('#'),
+            ])
+        )

@@ -149,14 +149,20 @@ class NGramExtractor(FeatureExtractorMixin):
                 else:
                     padded_datapoint = padded_datapoint + [self.eow]
 
+        max_ngram_size = min(len(padded_datapoint),self.max_ngram_size)
         ngrams = set()
-        for i in range(self.min_ngram_size, min(len(datapoint),self.max_ngram_size)+1):
+
+        for i in range(self.min_ngram_size, max_ngram_size + 1):
             ngrams.update(list(self._find_ngrams(padded_datapoint, i)))
             ### add skip grams for the given size
             for skip in range(1, min(self.skip_size, len(datapoint) - i) + 1):
                 ngrams_for_skipgrams = list(self._find_ngrams(datapoint, i + skip))
                 ### get all combinations of (i-2) times True and skip times False
-                for skip_vector in set(list(itertools.permutations([False]*skip + [True]*(i-2)))):
+                seen_permutations = set()
+                for skip_vector in itertools.permutations([False]*skip + [True]*(i-2)):
+                    if skip_vector in seen_permutations:
+                        continue
+                    seen_permutations.add(skip_vector)
                     skip_vector = [True] + list(skip_vector) + [True]
                     if self.gap:
                         skipgrams = [tuple([char if skip_vector[position] else self.gap for position, char in enumerate(ngram)]) for ngram in ngrams_for_skipgrams]
