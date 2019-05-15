@@ -7,6 +7,27 @@ import click
 from .lib.util import load_from_file_if_string, evaluate
 from .util.spellvarfactory import create_base_factory
 
+class JsonOption(click.ParamType):
+    """The json-option type allows for passing a list or dict using json as
+    parameter. If the passed string is not valid json, it is interpreted as
+    a filename and the content of the file is used.
+    """
+
+    name = 'json-option'
+
+    def convert(self, value, param, ctx):
+        try:
+            result = load_from_file_if_string(value)
+        except Exception:
+            self.fail(
+                value + " could not be parsed.",
+                param,
+                ctx,
+            )
+
+        return result
+
+
 @click.group()
 @click.pass_context
 def main(ctx):
@@ -18,15 +39,13 @@ def main(ctx):
 
 @main.command()
 @click.pass_context
-@click.argument('vocabulary')
-@click.argument('generator_settings')
-@click.option('-d', '--dictionary')
+@click.argument('vocabulary', type=JsonOption())
+@click.argument('generator_settings', type=JsonOption())
+@click.option('-d', '--dictionary', type=JsonOption())
 @click.option('-o', '--output_file', type=click.File('w'))
 @click.option('-p', '--max_processes', type=click.INT, default=1)
 def generate(ctx, vocabulary, generator_settings, dictionary, output_file, max_processes):
 
-    vocabulary = load_from_file_if_string(vocabulary)
-    settings = load_from_file_if_string(generator_settings)
     generator = ctx.obj['factory'].create_from_name("generator", generator_settings)
 
     ## 0 or negative numbers for allowing as many processes as cores
@@ -36,7 +55,7 @@ def generate(ctx, vocabulary, generator_settings, dictionary, output_file, max_p
     generator.setMaxProcesses(max_processes)
 
     if dictionary:
-        generator.setDictionary(load_from_file_if_string(dictionary))
+        generator.setDictionary(dictionary)
 
     try:
         variants = generator.getCandidatesForWords(vocabulary)
@@ -53,14 +72,12 @@ def apply_filter(word_candidates, cand_filter):
 
 @main.command('filter')
 @click.pass_context
-@click.argument('candidates')
-@click.argument('filter_settings')
+@click.argument('candidates', type=JsonOption())
+@click.argument('filter_settings', type=JsonOption())
 @click.option('-o', '--output_file', type=click.File('w'))
 @click.option('-p', '--max_processes', type=click.INT, default=1)
 def filter_(ctx, candidates, filter_settings, output_file, max_processes):
 
-    candidates = load_from_file_if_string(candidates)
-    settings = load_from_file_if_string(filter_settings)
     cand_filter = ctx.obj['factory'].create_from_name("type_filter", filter_settings)
 
     ## 0 or negative numbers for allowing as many processes as cores
@@ -83,21 +100,15 @@ def train():
 
 @train.command('filter')
 @click.pass_context
-@click.argument('filter_settings')
+@click.argument('filter_settings', type=JsonOption())
 @click.argument('modelfile_name')
-@click.argument('positive_pairs')
-@click.argument('negative_pairs')
-@click.option('-c', '--feature_cache')
+@click.argument('positive_pairs', type=JsonOption())
+@click.argument('negative_pairs', type=JsonOption())
+@click.option('-c', '--feature_cache', type=JsonOption())
 def train_filter(ctx, filter_settings, modelfile_name, positive_pairs, negative_pairs, feature_cache=None):
-
-    positive_pairs = load_from_file_if_string(positive_pairs)
-    negative_pairs = load_from_file_if_string(negative_pairs)
-
-    filter_settings = load_from_file_if_string(filter_settings)
 
     ## if global feature cache is set - add this cache to all feature extractors
     if feature_cache is not None and 'feature_extractors' in filter_settings['options']:
-        feature_cache = load_from_file_if_string(feature_cache)
 
         for feature_extractor in filter_settings['options']['feature_extractors']:
             if 'key' in feature_extractor.get('options', {}):
@@ -114,31 +125,29 @@ def utils():
 
 
 @utils.command('evaluate')
-@click.argument('gold_file')
-@click.argument('prediction_file')
-@click.option('-d', '--dict_file')
-@click.option('-k', '--known_file')
-@click.option('-f', '--freq_file')
-def evaluate_command(gold_file, prediction_file, dict_file=None, known_file=None, freq_file=None):
-
-    tokens = load_from_file_if_string(gold_file)
-    predictions_type = load_from_file_if_string(prediction_file)
+@click.argument('gold_data', type=JsonOption())
+@click.argument('predictions', type=JsonOption())
+@click.option('-d', '--dictionary', type=JsonOption())
+@click.option('-k', '--known_dictionary', type=JsonOption())
+@click.option('-f', '--freq_dict', type=JsonOption())
+def evaluate_command(gold_data, predictions, dictionary=None, known_dictionary=None, freq_dict=None):
 
     # add type-based predictions to tokens
-    tokens = [{**token, **{'filtered_candidates': predictions_type.get(token['type'], [])}} for token in tokens]
+    tokens = [{**token, **{'filtered_candidates': predictions.get(token['type'], [])}} for token in gold_data]
 
-    dictionary = set()
-    if dict_file:
-        dictionary = set(load_from_file_if_string(dict_file))
+    if dictionary is not None:
+        dictionary = set(dictionary)
+    else:
+        dictionary = set()
 
-    known_dict = set()
-    if known_file:
-        known_dict = set(load_from_file_if_string(known_file))
+    if known_dictionary is not None:
+        known_dictionary = set(known_dictionary)
+    else:
+        known_dictionary = set()
 
-    freq_dict = {}
-    if freq_file:
-        freq_dict = load_from_file_if_string(freq_file)
+    if freq_dict is None:
+        freq_dict = {}
 
     print(
         "{:.2f}|{:.2f}|{:.2f}|{:.2f}+-{:.2f}".format(
-            *evaluate(tokens, dictionary, known_dict, freq_dict)))
+            *evaluate(tokens, dictionary, known_dictionary, freq_dict)))

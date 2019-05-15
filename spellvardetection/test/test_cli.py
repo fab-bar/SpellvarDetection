@@ -255,7 +255,7 @@ class TestCLI(unittest.TestCase):
 
         runner = CliRunner()
         result = runner.invoke(spellvardetection.cli.utils, ['evaluate', json.dumps(tokens), json.dumps(predictions),
-                                                             '--dict_file', json.dumps(dict_)
+                                                             '--dictionary', json.dumps(dict_)
         ])
 
         self.assertEquals(result.output, '0.50|1.00|0.67|1.00+-0.00\n')
@@ -274,7 +274,24 @@ class TestCLI(unittest.TestCase):
 
         runner = CliRunner()
         result = runner.invoke(spellvardetection.cli.utils, ['evaluate', json.dumps(tokens), json.dumps(predictions),
-                                                             '--dict_file', json.dumps(dict_), '--known_file', json.dumps(known)
+                                                             '--dictionary', json.dumps(dict_), '--known_dictionary', json.dumps(known)
+        ])
+
+        self.assertEquals(result.output, '1.00|1.00|1.00|1.00+-0.00\n')
+
+    def test_evaluate_with_frequency(self):
+
+        tokens = [
+            {'type': 'dyt', 'variants': ['dit']},
+            {'type': 'dyt', 'variants': ['dit']},
+            {'type': 'is', 'variants': ['ist']},
+        ]
+        predictions = {'dyt': ['dit'], 'is': ['dit', 'ist']}
+        freq_dict = {'is': 10}
+
+        runner = CliRunner()
+        result = runner.invoke(spellvardetection.cli.utils, ['evaluate', json.dumps(tokens), json.dumps(predictions),
+                                                             '--freq_dict', json.dumps(freq_dict)
         ])
 
         self.assertEquals(result.output, '1.00|1.00|1.00|1.00+-0.00\n')
