@@ -9,10 +9,10 @@ except ImportError:
     import pickle
 import typing
 
+import joblib
 from sklearn.base import ClassifierMixin
 from sklearn.pipeline import Pipeline, FeatureUnion
 from sklearn.utils.metaestimators import _BaseComposition
-from sklearn.externals import joblib
 from sklearn.svm import SVC
 
 from imblearn.ensemble import BalancedBaggingClassifier

@@ -5,7 +5,7 @@ import unittest
 import click
 from click.testing import CliRunner
 
-from sklearn.externals import joblib
+import joblib
 from sklearn.dummy import DummyClassifier
 
 import spellvardetection.cli

@@ -10,6 +10,7 @@ setup(name='SpellvarDetection',
       setup_requires=['setuptools_scm'],
       install_requires=[
           'click',
+          'joblib',
           'typing_inspect',
           'numpy',
           'scipy',
