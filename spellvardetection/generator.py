@@ -149,6 +149,9 @@ class _AbstractSimplificationGenerator(_AbstractCandidateGenerator):
         if self.generator is not None:
             self.generator.setDictionary(self.simpl_candidates.keys())
 
+    def getSimplification(self, word):
+        return self.__apply_rules(word)
+
 ### A simplification generator with the rules from Koleva et al. 2017 (https://doi.org/10.1075/ijcl.22.1.05kol)
 class GentGMLSimplificationGenerator(_AbstractSimplificationGenerator):
 

@@ -330,6 +330,16 @@ class TestCLI(unittest.TestCase):
 
         self.assertEquals(result.output, '{"dyt": ["dit"]}\n')
 
+    def test_evaluate_simplify(self):
+
+        runner = CliRunner()
+        with runner.isolated_filesystem():
+            with open('input.txt', 'w') as f:
+                f.write("Test")
+
+            ## invoking command using main so that factory is initialized
+            result = runner.invoke(spellvardetection.cli.main, ['utils', 'simplify', 'input.txt', json.dumps([["ſ", "s"]])])
+            self.assertEquals(result.output, "Teſt\n")
 
     def test_learn_simplification_rules(self):
 

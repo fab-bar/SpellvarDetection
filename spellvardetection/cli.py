@@ -316,6 +316,22 @@ def extract_features(ctx, feature_extractors, datapoints, output_file):
     click.echo(jsonpickle.encode(feature_cache), file=output_file)
 
 
+@utils.command('simplify')
+@click.pass_context
+@click.argument('input_file', type=click.File('r'))
+@click.argument('rules', type=JsonOption())
+@click.option('-o', '--output_file', type=click.File('w'))
+def evaluate_command(ctx, input_file, rules, output_file):
+
+    simpl = ctx.obj['factory'].create_from_name("generator",
+                                                ({'type': 'simplification', 'options': {'ruleset': rules, 'dictionary': []}}))
+
+    for line in input_file:
+        click.echo(
+            simpl.getSimplification(line.strip()),
+            file=output_file)
+
+
 @utils.group()
 def learn():
     pass
