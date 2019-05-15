@@ -151,3 +151,16 @@ def evaluate_command(gold_data, predictions, dictionary=None, known_dictionary=N
     print(
         "{:.2f}|{:.2f}|{:.2f}|{:.2f}+-{:.2f}".format(
             *evaluate(tokens, dictionary, known_dictionary, freq_dict)))
+
+
+@utils.command('filter_similarity')
+@click.argument('predictions', type=JsonOption())
+@click.argument('sim_thresh', type=float)
+@click.option('-o', '--output_file', type=click.File('w'))
+def filter_similarity_command(predictions, sim_thresh, output_file):
+
+    types = {type_: [variant for variant, sim in variants if sim >= sim_thresh]
+        for type_, variants in
+        predictions.items()}
+
+    click.echo(json.dumps(types), file=output_file)

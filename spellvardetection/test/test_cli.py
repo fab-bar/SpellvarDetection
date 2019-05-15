@@ -295,3 +295,13 @@ class TestCLI(unittest.TestCase):
         ])
 
         self.assertEquals(result.output, '1.00|1.00|1.00|1.00+-0.00\n')
+
+    def test_filter_similarity(self):
+
+        variants = {'dyt': [['dit', 0.9], ['hyt', 0.5]]}
+
+        runner = CliRunner()
+        result = runner.invoke(spellvardetection.cli.utils, ['filter_similarity', json.dumps(variants), '0.7'
+        ])
+
+        self.assertEquals(result.output, '{"dyt": ["dit"]}\n')
