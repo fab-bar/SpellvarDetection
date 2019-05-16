@@ -1,3 +1,5 @@
+import atexit
+import cProfile
 import functools
 import json
 import multiprocessing
@@ -29,8 +31,19 @@ class JsonOption(click.ParamType):
 
 
 @click.group()
+@click.option('--with_profiler', default=False, is_flag=True)
 @click.pass_context
-def main(ctx):
+def main(ctx, with_profiler):
+
+    if with_profiler:
+        cp = cProfile.Profile()
+        cp.enable()
+
+        def stop_profiling():
+            cp.disable()
+            cp.print_stats(sort='time')
+
+        atexit.register(stop_profiling)
 
     if ctx.obj is None:
         ctx.obj = {}
