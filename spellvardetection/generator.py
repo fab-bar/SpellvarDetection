@@ -409,27 +409,45 @@ class _AbstractJaccardSimilarityGenerator(_SetsimilarityGenerator):
             add_similarity)
 
 
+    def setDictionary(self, dictionary: set):
+
+        super().setDictionary(dictionary)
+        self.feat_weights = self._getFeatureWeights()
+
     def getSetsim(self, seta, setb):
 
         intersection_wsum = self._getWeightedSum(set.intersection(seta, setb))
         union_wsum = self._getWeightedSum(set.union(seta, setb))
         return intersection_wsum/float(union_wsum)
 
+    def _getWeightedSum(self, feature_set):
+
+        return sum([self.feat_weights.get(feat, self.default_weight) for feat in feature_set])
+
 class JaccardSimilarityGenerator(_AbstractJaccardSimilarityGenerator):
 
     name = 'jaccard'
 
+    default_weight = 1
+
+    def _getFeatureWeights(self):
+
+        ## everything has (the default) weight 1
+        return {}
+
     def _getWeightedSum(self, feature_set):
 
         # features are not weighted - sum is just the length of the feature set
+        # faster than the generic version of _getWeightedSum
         return len(feature_set)
 
 class FrequencyWeightedJaccardSimilarityGenerator(_AbstractJaccardSimilarityGenerator):
 
     name = 'frequency_wjaccard'
 
-    def _getWeightedSum(self, feature_set):
+    default_weight = 1
+
+    def _getFeatureWeights(self):
 
         # each feature is weighted by its relative frequency in the dictionary
-        return sum([(1 - len(self.feature_known.get(feat, []))/float(len(self.dictionary))) for feat in feature_set])
-
+        return {feat: (1 - len(self.feature_known.get(feat))/float(len(self.dictionary))) for feat in self.feature_known.keys()}
