@@ -67,7 +67,10 @@ class FeatureExtractorMixin(metaclass=abc.ABCMeta):
         pass
 
     def _getDataKey(self, datapoint):
-        return json.dumps(tuple(sorted(datapoint)))
+        if isinstance(datapoint, str):
+            return datapoint
+        else:
+            return json.dumps(tuple(sorted(datapoint)))
 
     @abc.abstractmethod
     def _featureExtraction(self, datapoint):

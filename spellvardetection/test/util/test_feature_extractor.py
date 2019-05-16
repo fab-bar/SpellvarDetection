@@ -36,6 +36,21 @@ class TestSurfaceExtractor(unittest.TestCase):
             set([('ft',), ('$$', 'ft'), ('ft', 'ee'), ('$$', 'ft', 'ee'), ('ft', 'ee', 'ss')])}
         )
 
+    ## test cache for ngram extractor
+    def test_feature_extractor_cache_with_ngram(self):
+
+        ext = NGramExtractor(min_ngram_size=2, max_ngram_size=2, bow='', eow='')
+
+        ext.setFeatureCache()
+        self.assertEquals(
+            ext.extractFeaturesFromDatapoint('bcdea'),
+            set([('b', 'c'), ('c', 'd'), ('d', 'e'), ('e', 'a')])
+        )
+        self.assertEquals(
+            ext.extractFeaturesFromDatapoint('abcde'),
+            set([('a', 'b'), ('b', 'c'), ('c', 'd'), ('d', 'e')])
+        )
+
     def test_feature_extractor_cache_with_key(self):
 
         ext = SurfaceExtractor()
