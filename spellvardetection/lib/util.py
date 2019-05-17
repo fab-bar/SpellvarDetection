@@ -1,17 +1,19 @@
 # -*- coding: utf-8 -*-
 
-import json
 import statistics
 import inspect
 
+import jsonpickle
 import numpy
 
 def load_from_file_if_string(option):
     if isinstance(option, str):
         try:
-            return json.loads(option)
+            return jsonpickle.decode(option)
         except:
-            return json.load(open(option, 'r'))
+            with open(option, 'r') as jsonfile:
+                jsonstring = jsonfile.read()
+            return jsonpickle.decode(jsonstring)
     else:
         return option
 

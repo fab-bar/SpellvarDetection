@@ -11,6 +11,7 @@ setup(name='SpellvarDetection',
       install_requires=[
           'click',
           'joblib',
+          'jsonpickle',
           'typing_inspect',
           'numpy',
           'scipy',

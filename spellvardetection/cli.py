@@ -5,6 +5,7 @@ import json
 import multiprocessing
 
 import click
+import jsonpickle
 
 from .lib.util import load_from_file_if_string, evaluate
 from .util.spellvarfactory import create_base_factory
@@ -177,3 +178,26 @@ def filter_similarity_command(predictions, sim_thresh, output_file):
         predictions.items()}
 
     click.echo(json.dumps(types), file=output_file)
+
+
+@utils.command('extract_features')
+@click.argument('feature_extractors', type=JsonOption())
+@click.argument('datapoints', nargs=-1, required=True, type=JsonOption())
+@click.option('-o', '--output_file', type=click.File('w'))
+@click.pass_context
+def extract_features(ctx, feature_extractors, datapoints, output_file):
+
+    datapoints = [datapoint for dps in datapoints for datapoint in dps]
+
+    feature_cache = dict()
+
+    for extractor in feature_extractors:
+
+        extractor_key = extractor['key']
+
+        feature_extractor = ctx.obj['factory'].create_from_name("extractor", extractor)
+        feature_extractor.setFeatureCache(feature_cache, key=extractor_key)
+        feature_extractor.extractFeatures(datapoints)
+
+    ## using jsonpickle to allow datatypes not supported by json (e.g. set)
+    click.echo(jsonpickle.encode(feature_cache), file=output_file)
