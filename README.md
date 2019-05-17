@@ -25,16 +25,22 @@ interface will likely change.
 For now, the easiest way to install the dependencies and to run a pipeline for
 spelling detection is [pipenv](https://pipenv.readthedocs.io/en/latest/). Simply
 run `pipenv install` to install the required libraries (append `--dev` to
-install dependencies for development as well).
+install dependencies for development as well). After the installation `pipenv shell`
+starts a shell where SpellvarDetection is ready to be used.
 
 ## Command line interface
 
 Here are some examples how to run a pipeline for detecting spelling variants
 from the command line.
 
+The commands often expect input formatted as [json](https://json.org/), e.g.
+when giving words to generate spelling variants for or for describing a spelling
+variant generation pipeline. In this case, the commands allow for either the
+json-formatted data as a string or the name of a file containing the data.
+
 The following command runs the union of the generators described in `example_data/simple_pipeline.json`:
 
-    pipenv run spellvardetection generate '["vnd"]' example_data/simple_pipeline.json --dictionary '["und", "vnde", "vnnde", "unde", "vns"]'
+    spellvardetection generate '["vnd"]' example_data/simple_pipeline.json --dictionary '["und", "vnde", "vnnde", "unde", "vns"]'
 
 Some filters need to be trained, e.g. a SVM for distinguishing betwwen pairs
 of variants and non-variants using character n-grams from the aligned words.
@@ -42,15 +48,15 @@ Positive and negative examples are given in `example_data/gml_positive_pairs`
 and `example_data/gml_negative_pairs`. The trained model is written into the
 file `example_data/gml_spellvar.model`.
 
-    pipenv run spellvardetection train filter '{"type": "sklearn", "options": {"classifier_clsname": "__svm__", "feature_extractors": [{"type": "surface"}]}}' example_data/gml_spellvar.model example_data/gml_positive_pairs example_data/gml_negative_pairs
+    spellvardetection train filter '{"type": "sklearn", "options": {"classifier_clsname": "__svm__", "feature_extractors": [{"type": "surface"}]}}' example_data/gml_spellvar.model example_data/gml_positive_pairs example_data/gml_negative_pairs
 
 The model can then be used to filter spelling variants:
 
-    pipenv run spellvardetection filter '{"vnd": ["und", "vns"]}' '{"type": "sklearn", "options": {"modelfile_name": "example_data/gml_spellvar.model"}}'
+    spellvardetection filter '{"vnd": ["und", "vns"]}' '{"type": "sklearn", "options": {"modelfile_name": "example_data/gml_spellvar.model"}}'
 
 It can also be intergrated into a generator pipeline directly:
 
-    pipenv run spellvardetection generate '["vnd"]' example_data/svm_pipeline.json --dictionary '["und", "vnde", "vnnde", "unde", "vns"]'
+    spellvardetection generate '["vnd"]' example_data/svm_pipeline.json --dictionary '["und", "vnde", "vnnde", "unde", "vns"]'
 
 The commands `generate` and `filter` both have the option `-p` that allows to
 use multiple processes to work through a list of types in parallel. While this
@@ -58,15 +64,14 @@ can considerably speed up candidate generation and filtering, each process uses
 its own copy of the used generators and filters, so this can use a lot of
 memory.
 
-    pipenv run spellvardetection generate '["vnd", "uns"]' example_data/svm_pipeline.json --dictionary '["und", "vnde", "vnnde", "unde", "vns"]' -p 2
+    spellvardetection generate '["vnd", "uns"]' example_data/svm_pipeline.json --dictionary '["und", "vnde", "vnnde", "unde", "vns"]' -p 2
 
 ## REST API
 
 Spelling variant detection pipelines can also be run using a REST API. Pipelines
 and dictionaries that can be used with this API are stored in a database. There
-is a simple command line interface to add them. To use ist, start a pipenv shell
-by running `pipenv shell`. First set the `FLASK_APP` environment variable to
-`spellvardetection.rest`:
+is a simple command line interface to add them. To use ist, first set the
+`FLASK_APP` environment variable to `spellvardetection.rest`:
 
     export FLASK_APP=spellvardetection.rest
 
