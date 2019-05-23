@@ -15,7 +15,11 @@ from sklearn.pipeline import Pipeline, FeatureUnion
 from sklearn.utils.metaestimators import _BaseComposition
 from sklearn.svm import SVC
 
-from imblearn.ensemble import BalancedBaggingClassifier
+import warnings
+
+with warnings.catch_warnings():
+    warnings.filterwarnings("ignore",category=DeprecationWarning)
+    from imblearn.ensemble import BalancedBaggingClassifier
 
 from spellvardetection.util.feature_extractor import FeatureExtractorMixin, SurfaceExtractor
 import spellvardetection.lib.clusters
