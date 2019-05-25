@@ -9,6 +9,10 @@ name = "pypi"
 
 "nose2" = "*"
 
+"sphinx" = "*"
+"sphinx_rtd_theme" = "*"
+"m2r" = "*"
+
 
 [packages]
 
