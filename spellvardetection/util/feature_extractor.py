@@ -121,7 +121,7 @@ class NGramExtractor(FeatureExtractorMixin):
     name = "ngram"
 
     def create(min_ngram_size=2, max_ngram_size=float('inf'), skip_size=0, gap="|", bow="$", eow="$", pad_ngrams=False):
-        return NGramExtractor(min_ngram_size, max_ngram_size, skip_size, gap, bow, eow)
+        return NGramExtractor(min_ngram_size, max_ngram_size, skip_size, gap, bow, eow, pad_ngrams)
 
     def __init__(self, min_ngram_size=2, max_ngram_size=float('inf'), skip_size=0, gap="|", bow="$", eow="$", pad_ngrams=False):
 
