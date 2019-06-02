@@ -89,7 +89,7 @@ def get_alignment(type_a, type_b, directed=False, conflate_id_pairs=False):
     if directed and conflate_id_pairs:
         return map(lambda x: u''.join(list(x)) if x[0] != x[1] else "IDD", alignment)
     elif conflate_id_pairs:
-        return map(lambda x: u''.join(sorted(list(x))) if x[0] != x[1] else "IDD", alignemnt)
+        return map(lambda x: u''.join(sorted(list(x))) if x[0] != x[1] else "IDD", alignment)
     elif directed:
         return map(lambda x: u''.join(list(x)), alignment)
     else:

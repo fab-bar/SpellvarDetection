@@ -47,6 +47,13 @@ class TestAlignment(unittest.TestCase):
             list(get_alignment('478901', '12345678'))
         )
 
+    def test_conflate_id(self):
+
+        self.assertEquals(
+            list(get_alignment('dit', 'dyt', conflate_id_pairs=True)),
+            ['IDD', 'iy', 'IDD']
+        )
+
 class TestEvaluate(unittest.TestCase):
 
 
