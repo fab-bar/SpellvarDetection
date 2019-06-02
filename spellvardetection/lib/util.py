@@ -22,7 +22,7 @@ def load_from_file_if_string(option):
 def _unwrap_self(arg, function_name, **kwarg):
     return getattr(type(arg[0]), function_name)(*arg, **kwarg)
 
-def nw_alignment(type_a, type_b):
+def nw_alignment(type_a, type_b, empty_char='-'):
 
     mismatch_cost = 1
 
@@ -48,10 +48,10 @@ def nw_alignment(type_a, type_b):
     i,j = len(type_a), len(type_b)
     while i > 0 and j > 0:
         if cost_matrix[i][j-1] == cost_matrix[i][j] - mismatch_cost:
-            alignment.append(('-', type_b[j-1]))
+            alignment.append((empty_char, type_b[j-1]))
             j -= 1
         elif cost_matrix[i-1][j] == cost_matrix[i][j] - mismatch_cost:
-            alignment.append((type_a[i-1], '-'))
+            alignment.append((type_a[i-1], empty_char))
             i -= 1
         elif cost_matrix[i-1][j-1] == cost_matrix[i][j] or cost_matrix[i-1][j-1] == cost_matrix[i][j] - mismatch_cost:
             alignment.append((type_a[i-1], type_b[j-1]))
@@ -61,25 +61,25 @@ def nw_alignment(type_a, type_b):
             raise Exception("NW-Alignment: No valid traceback path - Should not happen")
 
     while i > 0:
-        alignment.append((type_a[i-1], '-'))
+        alignment.append((type_a[i-1], empty_char))
         i -= 1
     while j > 0:
-        alignment.append(('-', type_b[j-1]))
+        alignment.append((empty_char, type_b[j-1]))
         j -= 1
 
     return reversed(alignment)
 
-def get_alignment(type_a, type_b, directed=False, conflate_id_pairs=False):
+def get_alignment(type_a, type_b, directed=False, conflate_id_pairs=False, empty_char='-'):
 
     seq_a = seq_b = []
     if not type_b: # handle empty candidate
         seq_a = type_a
-        seq_b = "-"*len(type_a)
+        seq_b = empty_char*len(type_a)
     else:
         ### result of needlemann-wunsch alignment is dependent on the order
         ### sort by length to avoid this
         if len(type_a) >= len(type_b):
-            alignment = nw_alignment(type_a, type_b)
+            alignment = nw_alignment(type_a, type_b, empty_char=empty_char)
         else:
             alignment = nw_alignment(type_b, type_a)
 
