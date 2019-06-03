@@ -2,6 +2,7 @@
 
 import abc
 import importlib
+import math
 import os
 try:
     import cPickle as pickle
@@ -180,7 +181,7 @@ class ClusterTypeFilter(_AbstractTypeFilter):
             return self.clusters.inSameCluster(word, candidate)
 
 
-class _TrainableSimilarityFilter(_AbstractTrainableTypeFilter):
+class _SimilarityFilter(_AbstractTypeFilter):
 
     def __init__(self, similarity, sim_thresh=0.9):
 
@@ -191,7 +192,7 @@ class _TrainableSimilarityFilter(_AbstractTrainableTypeFilter):
 
         return self.similarity(word, candidate) >= self.sim_thresh
 
-class UndirSpSimTypeFilter(_TrainableSimilarityFilter):
+class UndirSpSimTypeFilter(_SimilarityFilter, _AbstractTrainableTypeFilter):
 
     name = 'uspsim'
 
@@ -239,3 +240,47 @@ class UndirSpSimTypeFilter(_TrainableSimilarityFilter):
 
         with open(file_name, 'wb') as outfile:
             pickle.dump(self.similarity, outfile)
+
+
+class EditProbabilitiesTypeFilter(_SimilarityFilter):
+
+    name = 'edit_probabilites'
+
+    def similarity(self, word, candidate):
+
+        alignment = filter(lambda e: e != 'IDD',
+                                spellvardetection.lib.util.get_alignment(
+                                    word, candidate,
+                                    directed=False, conflate_id_pairs=True,
+                                    empty_char=''
+                                ))
+
+        sim = 0
+        for e in alignment:
+            if e in self.probabilities:
+                sim += self.probabilities[e]
+            else:
+                sim += self.default_probability
+
+        return sim
+
+    def __init__(self, probabilities: list, sim_thresh=0.9, default_probability=1.0):
+
+        self.default_probability = math.log(default_probability)
+
+        # convert chars into keys
+        probabilities = [{'chars': ''.join(sorted([edit_op['char1'], edit_op['char2']])), 'probability': edit_op['probability']}
+                         for edit_op in probabilities]
+
+        if not all(map(lambda p: p['probability'] <= 1 and p['probability'] > 0, probabilities)):
+            raise ValueError('Probabilities below or equal to 0 or above 1 are not allowed.')
+
+        # double pairs
+        if not len(set(map(lambda p: p['chars'], probabilities))) == len(probabilities):
+            raise ValueError('Duplicate weights')
+
+        self.probabilities = {
+            edit_op['chars']: math.log(edit_op['probability']) for edit_op in probabilities
+        }
+
+        self.sim_thresh = math.log(sim_thresh)
