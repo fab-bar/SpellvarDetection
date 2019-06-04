@@ -9,6 +9,7 @@ import jsonpickle
 
 from .lib.util import load_from_file_if_string, evaluate
 from .util.spellvarfactory import create_base_factory
+import spellvardetection.util.learn_simplification_rules
 
 class JsonOption(click.ParamType):
     """The json-option type allows for passing a list or dict using json as
@@ -201,3 +202,29 @@ def extract_features(ctx, feature_extractors, datapoints, output_file):
 
     ## using jsonpickle to allow datatypes not supported by json (e.g. set)
     click.echo(jsonpickle.encode(feature_cache), file=output_file)
+
+
+@utils.group()
+def learn():
+    pass
+
+@learn.command('simplification_rules')
+@click.argument('spellvar_dictionary', type=JsonOption())
+@click.option('-f', '--freq_thresh', type=click.INT, default=30)
+@click.option('-pr', '--prec_thresh', type=float, default=0.7)
+@click.option('-p', '--max_processes', type=click.INT, default=1)
+@click.option('-o', '--output_file', type=click.File('w'))
+def learn_simplification_rules(spellvar_dictionary, freq_thresh, prec_thresh, max_processes, output_file):
+
+    ## 0 or negative numbers for allowing as many processes as cores
+    if max_processes < 1:
+        max_processes = multiprocessing.cpu_count()
+
+    rules = spellvardetection.util.learn_simplification_rules.getRulesAndFreqFromSpellvars(
+        spellvar_dictionary, max_processes)
+
+    click.echo(
+        json.dumps([
+            rule for rule, rule_features in rules.items()
+            if rule_features['tp'] >= freq_thresh and rule_features['tp']/(rule_features['tp']+rule_features['fp']) >= prec_thresh]),
+        file=output_file)

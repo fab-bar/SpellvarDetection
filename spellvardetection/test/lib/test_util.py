@@ -2,6 +2,8 @@ import unittest
 
 from spellvardetection.lib.util import *
 
+from spellvardetection.generator import LevenshteinGenerator
+
 class TestAlignment(unittest.TestCase):
 
     def test_alignment_basic_sequences(self):
@@ -99,3 +101,23 @@ class TestEvaluate(unittest.TestCase):
         result = evaluate(tokens)
 
         self.assertEquals(result, [0, 0, 0, 1, 0])
+
+    def test_getPairsFromSpellvardict(self):
+
+        self.assertEqual(
+            getPairsFromSpellvardict({'abc': ['a', 'b', 'c'], 'c': ['a', 'abc']}),
+            set([('a', 'abc'), ('a', 'c'), ('abc', 'b'), ('abc', 'c')])
+        )
+
+    def test_getTrueAndFalsePairs(self):
+
+        generator = LevenshteinGenerator(max_dist=1)
+        true_pairs, false_pairs = getTrueAndFalsePairs({'abc': ['a', 'b', 'c'], 'c': ['a', 'abc']}, generator)
+        self.assertEqual(
+            true_pairs,
+            set([('a', 'c')])
+        )
+        self.assertEqual(
+            false_pairs,
+            set([('a', 'b'), ('b', 'c')])
+        )

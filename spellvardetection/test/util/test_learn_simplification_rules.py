@@ -36,13 +36,6 @@ class TestLearnSimplificationRules(unittest.TestCase):
                          "n")
 
 
-    def test_getPairsFromSpellvardict(self):
-
-        self.assertEqual(
-            simpl.getPairsFromSpellvardict({'abc': ['a', 'b', 'c'], 'c': ['a', 'abc']}),
-            set([('a', 'abc'), ('a', 'c'), ('abc', 'b'), ('abc', 'c')])
-        )
-
     def test_getRulesAndFreqFromSpellvars(self):
 
         self.assertEqual(

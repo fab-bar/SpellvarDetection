@@ -305,3 +305,21 @@ class TestCLI(unittest.TestCase):
         ])
 
         self.assertEquals(result.output, '{"dyt": ["dit"]}\n')
+
+
+    def test_learn_simplification_rules(self):
+
+        variants = {'dyt': ['dit'], 'hit': ['hyt']}
+
+        runner = CliRunner()
+        result = runner.invoke(spellvardetection.cli.learn, [
+            'simplification_rules', json.dumps(variants), '-f', '1'
+        ])
+
+        self.assertEquals(result.output, '[["i", "y"]]\n')
+
+        result = runner.invoke(spellvardetection.cli.learn, [
+            'simplification_rules', json.dumps(variants), '-f', '3'
+        ])
+
+        self.assertEquals(result.output, '[]\n')

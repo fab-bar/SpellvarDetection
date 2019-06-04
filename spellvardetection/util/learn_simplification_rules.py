@@ -3,6 +3,7 @@ import multiprocessing
 import collections
 
 from spellvardetection.generator import LevenshteinGenerator
+from spellvardetection.lib.util import getTrueAndFalsePairs
 
 def getRules(word1, word2, padding_left = "^^", padding_right = "^^"):
 
@@ -35,20 +36,8 @@ def getRulesFromPair(pair):
 
 def getRulesAndFreqFromSpellvars(type_variants, max_processes=None):
 
-    dictionary = set(type_variants.keys())
-    for word in type_variants.keys():
-        dictionary.update(type_variants[word])
-
-    ## extract all possible pairs
-    generator = LevenshteinGenerator(dictionary, 1, merge_split=True)
-    generator.setMaxProcesses(max_processes)
-    cand_pairs = getPairsFromSpellvardict(generator.getCandidatesForWords(dictionary))
-
-    ## extract all positive pairs that would be generated
-    true_pairs = getPairsFromSpellvardict(type_variants).intersection(cand_pairs)
-
-    ## get the false pairs
-    false_pairs = cand_pairs.difference(true_pairs)
+    generator = LevenshteinGenerator(max_dist=1, merge_split=True)
+    true_pairs, false_pairs = getTrueAndFalsePairs(type_variants, generator, max_processes)
 
     # Getting true rules
     with multiprocessing.Pool(max_processes) as pool:
@@ -73,8 +62,3 @@ def getRulesAndFreqFromSpellvars(type_variants, max_processes=None):
 
     return rules
 
-def getPairsFromSpellvardict(spellvardict):
-
-    return set([
-        tuple(sorted((word, spellvar))) for word, spellvars in spellvardict.items() for spellvar in spellvars
-    ])

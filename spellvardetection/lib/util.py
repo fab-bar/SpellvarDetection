@@ -142,3 +142,28 @@ def evaluate(tokens, dictionary={}, known_dict={}, freq_dict={}):
     return [precision, recall, f1,
             statistics.mean(number_of_candidates),
             statistics.stdev(number_of_candidates)]
+
+def getPairsFromSpellvardict(spellvardict):
+
+    return set([
+        tuple(sorted((word, spellvar))) for word, spellvars in spellvardict.items() for spellvar in spellvars
+    ])
+
+def getTrueAndFalsePairs(spellvardict, generator, max_processes=None):
+
+    dictionary = set(spellvardict.keys())
+    for word in spellvardict.keys():
+        dictionary.update(spellvardict[word])
+
+    ## extract all possible pairs
+    generator.setDictionary(dictionary)
+    generator.setMaxProcesses(max_processes)
+    cand_pairs = getPairsFromSpellvardict(generator.getCandidatesForWords(dictionary))
+
+    ## extract all positive pairs that would be generated
+    true_pairs = getPairsFromSpellvardict(spellvardict).intersection(cand_pairs)
+
+    ## get the false pairs
+    false_pairs = cand_pairs.difference(true_pairs)
+
+    return true_pairs, false_pairs
