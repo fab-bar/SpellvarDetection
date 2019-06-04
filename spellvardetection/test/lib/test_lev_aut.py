@@ -4,10 +4,10 @@ from spellvardetection.lib.lev_aut import DictAutomaton
 
 class TestLevenshteinAutomaton(unittest.TestCase):
 
-    def _get_matches(self, word, threshold, dictionary, merge_split=False, transposition=False, repetitions=False):
+    def _get_matches(self, word, threshold, dictionary, merge_split=False, transposition=False, repetitions=False, strict_dist=False):
 
         dict_automaton = DictAutomaton(dictionary)
-        return dict_automaton.fuzzySearch(word, threshold, merge_split, transposition, repetitions)
+        return dict_automaton.fuzzySearch(word, threshold, merge_split, transposition, repetitions, strict_dist)
 
     def test_distance(self):
 
@@ -23,6 +23,22 @@ class TestLevenshteinAutomaton(unittest.TestCase):
 
         self.assertEquals(
             self._get_matches('anders', 1, test_dict),
+            matches)
+
+    def test_strict_distance(self):
+
+        test_dict = sorted(['Test', 'Tst', 'Tset', 'Tsset', 'abc', 'Teest', 'Teeesst'])
+        matches = set(['Tsset', 'Tset'])
+
+        self.assertEquals(
+            self._get_matches('Test', 2, test_dict, strict_dist=True),
+            matches)
+
+        test_dict = sorted(['andere', 'ander'])
+        matches = set([])
+
+        self.assertEquals(
+            self._get_matches('anders', 2, test_dict, strict_dist=True),
             matches)
 
     def test_split_merge(self):

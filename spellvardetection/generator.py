@@ -231,11 +231,13 @@ class _LevenshteinAutomatonGenerator(_AbstractCandidateGenerator):
 
     def __init__(self,
                  dictionary: set=None,
-                 transposition=False, merge_split=False, repetitions=False):
+                 transposition=False, merge_split=False, repetitions=False,
+                 strict_dist=False):
 
         self.transposition = transposition
         self.merge_split = merge_split
         self.repetitions = repetitions
+        self.strict_dist = strict_dist
 
         if dictionary is not None:
             self.setDictionary(dictionary)
@@ -245,7 +247,7 @@ class _LevenshteinAutomatonGenerator(_AbstractCandidateGenerator):
         if not hasattr(self, 'dict_automaton'):
             raise RuntimeError("Dictionary has to be set for generator of type " + self.name)
 
-        cands = self.dict_automaton.fuzzySearch(word, distance, transposition=self.transposition, merge_split=self.merge_split, repetitions=self.repetitions)
+        cands = self.dict_automaton.fuzzySearch(word, distance, transposition=self.transposition, merge_split=self.merge_split, repetitions=self.repetitions, strict_dist=self.strict_dist)
 
         if word in cands:
             cands.remove(word)
@@ -263,9 +265,10 @@ class LevenshteinGenerator(_LevenshteinAutomatonGenerator):
 
     def __init__(self, dictionary: set=None,
                  max_dist=2,
-                 transposition=False, merge_split=False, repetitions=False):
+                 transposition=False, merge_split=False, repetitions=False,
+                 strict_dist=False):
 
-        super().__init__(dictionary, transposition, merge_split, repetitions)
+        super().__init__(dictionary, transposition, merge_split, repetitions, strict_dist)
 
         self.max_dist = max_dist
 

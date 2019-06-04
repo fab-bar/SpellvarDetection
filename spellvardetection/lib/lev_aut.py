@@ -5,10 +5,19 @@ class DictAutomaton:
     ANY_INPUT = '__ANY__'
     EPSILON = '__EPSILON__'
 
-    def fuzzySearch(self, word, distance, merge_split=False, transposition=False, repetitions=False):
+    def fuzzySearch(self, word, distance, merge_split=False, transposition=False, repetitions=False, strict_dist=False):
 
         lev_aut = self._create_levenshtein_dfa(word, distance, merge_split=merge_split, transposition=transposition, repetitions=repetitions)
-        return dfa_intersection_language(lev_aut, self.automaton, any_input=self.ANY_INPUT)
+
+        words = dfa_intersection_language(lev_aut, self.automaton, any_input=self.ANY_INPUT)
+
+        if strict_dist:
+            ## only keep words with the given distance
+            words = filter(
+                lambda word: distance == min([state[1] for state in word[0]]),
+                words)
+
+        return set(map(lambda word: word[1], words))
 
     def __init__(self, dictionary):
 

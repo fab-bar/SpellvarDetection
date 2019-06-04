@@ -86,7 +86,8 @@ def dfa_intersection_language(dfa_1: dict, dfa_2: dict, any_input=None) -> dict:
     while boundary:
         (state_dfa_1, state_dfa_2) = boundary.pop()
         if state_dfa_1 in dfa_1['accepting_states'] and state_dfa_2 in dfa_2['accepting_states']:
-            language.add(state_dfa_2)
+
+            language.add((state_dfa_1, state_dfa_2))
 
         if any_input in dfa_1['transitions'].get(state_dfa_1, {}):
             characters = dfa_2['transitions'].get(state_dfa_2, {}).keys()
