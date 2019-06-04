@@ -2,4 +2,4 @@ Getting started
 ===============
 
 .. mdinclude:: ../README.md
-   :start-line: 20
+   :start-line: 22

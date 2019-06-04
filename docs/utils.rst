@@ -21,6 +21,23 @@ Optionally, you can add a dictionary with ``-d``. This only consideres variants
 and predicted variants from this dictionary for the evalulation. With ``-k``, you
 can add a dictionary of known types that are ignored for the evaluation.
 
+.. _training_data:
+
+Creating training data
+----------------------
+::
+
+    spellvardetection utils extract_training_data spellvar_dict generated_spellvars positive_pairs negative_pairs
+
+This command takes two :ref:`spelling variant dictionaries
+<spellvar_dictionary>`: one containing actual spelling variants, the other
+containing spelling variant candidates coming from a generator.
+
+From these it creates two lists of word pairs: one containing pairs of spelling
+variants, the other containing pairs that are not spelling variants (but that
+are according to the generator). With this data a filter can be trained for used
+generator.
+
 Feature extraction
 ------------------
 ::

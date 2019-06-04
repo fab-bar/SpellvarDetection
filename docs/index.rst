@@ -1,9 +1,17 @@
 .. mdinclude:: ../README.md
-   :end-line: 19
+   :end-line: 21
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
+   :caption: For users
 
    overview
+   input
+   pipeline
    utils
 
+.. toctree::
+   :maxdepth: 1
+   :caption: For developers
+
+   development

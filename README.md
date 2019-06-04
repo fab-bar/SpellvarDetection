@@ -1,6 +1,8 @@
 # SpellvarDetection
 
 A tool for detecting spelling variants in non-standard texts.
+For a given wordform like _lol_ the tool will return spelling variants from
+your data, for example _loool_.
 
 For more information see the following paper:
 
