@@ -3,7 +3,7 @@ import os
 import tempfile
 import unittest
 
-from spellvardetection.rest import create_app
+from spellvardetection.webapi import create_app
 
 class TestRest(unittest.TestCase):
 

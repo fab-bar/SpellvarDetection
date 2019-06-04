@@ -2,7 +2,7 @@ import os
 
 from flask import Flask
 
-from spellvardetection.rest import db, resources, routes
+from spellvardetection.webapi import db, resources, routes
 from spellvardetection.util.spellvarfactory import create_base_factory
 
 def create_app(test_config=None):

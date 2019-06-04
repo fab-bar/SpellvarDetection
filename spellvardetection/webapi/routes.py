@@ -5,7 +5,7 @@ from flask import Blueprint, current_app, request
 
 import flask.json
 
-from spellvardetection.rest.db import get_db
+from spellvardetection.webapi.db import get_db
 
 from spellvardetection.generator import _AbstractCandidateGenerator
 

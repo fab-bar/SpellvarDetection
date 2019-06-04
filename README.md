@@ -66,14 +66,14 @@ memory.
 
     spellvardetection generate '["vnd", "uns"]' example_data/svm_pipeline.json --dictionary '["und", "vnde", "vnnde", "unde", "vns"]' -p 2
 
-## REST API
+## Web API
 
-Spelling variant detection pipelines can also be run using a REST API. Pipelines
+Spelling variant detection pipelines can also be run using a Web API. Pipelines
 and dictionaries that can be used with this API are stored in a database. There
 is a simple command line interface to add them. To use ist, first set the
-`FLASK_APP` environment variable to `spellvardetection.rest`:
+`FLASK_APP` environment variable to `spellvardetection.webapi`:
 
-    export FLASK_APP=spellvardetection.rest
+    export FLASK_APP=spellvardetection.webapi
 
 Now you can add generators and dictionaries using the command line interface:
 
