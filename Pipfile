@@ -13,11 +13,6 @@ versioneer = "*"
 
 "nose2" = "*"
 
-"sphinx" = "*"
-"sphinx_rtd_theme" = "*"
-"m2r" = "*"
-
-
 [packages]
 
 "e1839a8" = {path = ".", editable = true}

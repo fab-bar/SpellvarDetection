@@ -15,4 +15,4 @@ coverage:
 
 .PHONY: docs
 docs:
-	pipenv run $(MAKE) -C docs html
+	pipenv run tox -e docs
