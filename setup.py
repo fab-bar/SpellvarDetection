@@ -1,13 +1,16 @@
 from setuptools import setup, find_packages
+import versioneer
+
 
 setup(name='SpellvarDetection',
-      use_scm_version=True,
       url='https://github.com/fab-bar/SpellvarDetection',
       author='Fabian Barteld',
       author_email='fabian.barteld@rub.de',
       license='MIT',
+      version=versioneer.get_version(),
+      cmdclass=versioneer.get_cmdclass(),
       packages=find_packages(),
-      setup_requires=['setuptools_scm'],
+      setup_requires=[],
       install_requires=[
           'click',
           'joblib',
