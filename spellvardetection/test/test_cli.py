@@ -323,3 +323,17 @@ class TestCLI(unittest.TestCase):
         ])
 
         self.assertEquals(result.output, '[]\n')
+
+    def test_learn_edit_probabilities(self):
+
+        variants = {'dyt': ['dit'], 'hit': ['hyt']}
+
+        runner = CliRunner()
+        result = runner.invoke(spellvardetection.cli.learn, [
+            'edit_probabilities', json.dumps(variants)
+        ])
+
+        self.assertEquals(
+            json.loads(result.output),
+            [{"char1": "i", "char2": "y", "probability": 0.75}, {"char1": "d", "char2": "h", "probability": 0.25}]
+        )
