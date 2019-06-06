@@ -25,7 +25,7 @@ class _AbstractCandidateGenerator(metaclass=abc.ABCMeta):
         return (word, self.getCandidatesForWord(word))
 
     @abc.abstractmethod
-    def getCandidatesForWord(self, word):
+    def getCandidatesForWord(self, word):  # pragma: no cover
         pass
 
     def setDictionary(self, dictionary: set):
@@ -122,7 +122,7 @@ class _AbstractSimplificationGenerator(_AbstractCandidateGenerator):
             self.setDictionary(dictionary)
 
     @abc.abstractmethod
-    def __apply_rules(self, word):
+    def __apply_rules(self, word):  # pragma: no cover
         pass
 
 
@@ -310,7 +310,7 @@ class _SetsimilarityGenerator(_AbstractCandidateGenerator):
             self.setDictionary(dictionary)
 
     @abc.abstractmethod
-    def getSetsim(self, seta, setb):
+    def getSetsim(self, seta, setb):  # pragma: no cover
         pass
 
     def getCandidatesForWord(self, texttype):
@@ -384,7 +384,7 @@ class ProxinetteGenerator(_SetsimilarityGenerator):
 class _AbstractJaccardSimilarityGenerator(_SetsimilarityGenerator):
 
     @abc.abstractmethod
-    def _getWeightedSum(self, feature_set):
+    def _getWeightedSum(self, feature_set):  # pragma: no cover
         pass
 
     @classmethod

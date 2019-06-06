@@ -63,7 +63,7 @@ class FeatureExtractorMixin(metaclass=abc.ABCMeta):
                 setattr(cls, 'create', create_and_add_cache)
 
     @abc.abstractmethod
-    def create(**options):
+    def create(**options):  # pragma: no cover
         pass
 
     def _getDataKey(self, datapoint):
@@ -73,7 +73,7 @@ class FeatureExtractorMixin(metaclass=abc.ABCMeta):
             return json.dumps(tuple(sorted(datapoint)))
 
     @abc.abstractmethod
-    def _featureExtraction(self, datapoint):
+    def _featureExtraction(self, datapoint):  # pragma: no cover
         pass
 
     def extractFeaturesFromDatapoint(self, datapoint):

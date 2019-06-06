@@ -31,7 +31,7 @@ import spellvardetection.lib.util
 class _AbstractTypeFilter(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
-    def isPair(self, word, candidate):
+    def isPair(self, word, candidate):  # pragma: no cover
         pass
 
     def filterCandidates(self, word, candidates):
@@ -42,15 +42,15 @@ class _AbstractTrainableTypeFilter(_AbstractTypeFilter):
 
 
     @abc.abstractmethod
-    def train(self, positive_pairs, negative_pairs):
+    def train(self, positive_pairs, negative_pairs):  # pragma: no cover
         pass
 
     @abc.abstractmethod
-    def load(modelfile_name):
+    def load(modelfile_name):  # pragma: no cover
         pass
 
     @abc.abstractmethod
-    def save(self, modelfile_name):
+    def save(self, modelfile_name):  # pragma: no cover
         pass
 
 
