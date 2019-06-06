@@ -230,6 +230,30 @@ class TestCLI(unittest.TestCase):
             result_dict["vnd"] = set(result_dict["vnd"])
             self.assertEquals(result_dict, {"vnd": set(["und", "vnde"])})
 
+    def test_extract_training_data(self):
+
+        variants = {'und': ['vnd', 'unde', 'vnnde']}
+        predictions = {'und': ['vnd', 'unde', 'uns']}
+
+        runner = CliRunner()
+        with runner.isolated_filesystem():
+            result = runner.invoke(spellvardetection.cli.utils,
+                                   ['extract_training_data', json.dumps(variants), json.dumps(predictions), 'pos.json', 'neg.json'])
+
+            pos_pairs = json.load(open('pos.json', 'r'))
+            neg_pairs = json.load(open('neg.json', 'r'))
+
+        self.assertEquals(
+            set([tuple(pair) for pair in pos_pairs]),
+            set([("und", "vnd"), ("und", "unde")])
+        )
+
+        self.assertEquals(
+            set([tuple(pair) for pair in neg_pairs]),
+            set([("und", "uns")])
+        )
+
+
     def test_evaluate(self):
 
         tokens = [

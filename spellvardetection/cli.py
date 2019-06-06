@@ -3,11 +3,12 @@ import cProfile
 import functools
 import json
 import multiprocessing
+import random
 
 import click
 import jsonpickle
 
-from .lib.util import load_from_file_if_string, evaluate
+from .lib.util import load_from_file_if_string, evaluate, getPairsFromSpellvardict
 from .util.spellvarfactory import create_base_factory
 import spellvardetection.util.learn_simplification_rules
 import spellvardetection.util.learn_edit_probabilities
@@ -139,6 +140,44 @@ def train_filter(ctx, filter_settings, modelfile_name, positive_pairs, negative_
 def utils():
     pass
 
+@utils.command('extract_training_data')
+@click.argument('gold_variants', type=JsonOption())
+@click.argument('generated_variants', type=JsonOption())
+@click.argument('outfile_positive', type=click.File('w'))
+@click.argument('outfile_negative', type=click.File('w'))
+@click.option('-f', '--frequency', type=(JsonOption(), int), default=(None, 1))
+@click.option('-r', '--resample', default=False, is_flag=True)
+def extract_training_data(gold_variants, generated_variants,
+                          outfile_positive, outfile_negative,
+                          frequency, resample):
+
+    freq_dict, freq_thresh = frequency
+
+    pos_pairs = set([])
+    neg_pairs = set([])
+
+    spellvarpairs = getPairsFromSpellvardict(gold_variants)
+    candidatepairs = getPairsFromSpellvardict(generated_variants)
+
+    for pair in candidatepairs:
+        if pair in spellvarpairs:
+            pos_pairs.add(pair)
+        else:
+            neg_pairs.add(pair)
+
+    if freq_dict is not None:
+        neg_pairs = set(
+            [neg_pair for neg_pair in neg_pairs
+             if freq_dict.get(neg_pair[0], 0) >= freq_thresh and freq_dict.get(neg_pair[1], 0) >= freq_thresh])
+
+    if resample:
+        if len(neg_pairs) > len(pos_pairs):
+            neg_pairs = random.sample(neg_pairs, len(pos_pairs))
+        elif len(pos_pairs) > len(neg_pairs):
+            pos_pairs = random.sample(pos_pairs, len(neg_pairs))
+
+    json.dump(list(pos_pairs), outfile_positive)
+    json.dump(list(neg_pairs), outfile_negative)
 
 @utils.command('evaluate')
 @click.argument('gold_data', type=JsonOption())
