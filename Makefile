@@ -1,13 +1,9 @@
-REBUILD_FLAG =
-
 requirements.txt: Pipfile.lock
-	$(eval REBUILD_FLAG := --recreate)
 	pipenv lock --dev -r > requirements.txt
-
 
 .PHONY: test
 test: requirements.txt
-	pipenv run tox $(REBUILD_FLAG)
+	pipenv run tox
 
 .PHONY: coverage
 coverage:
