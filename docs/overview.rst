@@ -69,6 +69,18 @@ main memory.
 
    spellvardetection generate '["vnd", "uns"]' example_data/svm_pipeline.json --dictionary '["und", "vnde", "vnnde", "unde", "vns"]' -p 2
 
+The commands ``generate`` and ``filter`` both work on the type level, i.e. they
+ignore the specific token context. To train and apply a token-based filter that
+can distinguish different usages of a type, the following commands can be used
+(here with the filter defined in ``example_data/token_filter.json`` trained on
+the tokens given in ``example_data/gml_tokens.json``):
+
+.. code-block:: bash
+
+   spellvardetection train token_filter example_data/token_filter.json example_data/gml_spellvar_token.model example_data/gml_tokens.json '{"in": ["jn", "yn", "en", "ene"]}' --seed 42
+   spellvardetection filter_tokens '[{"type": "in", "left_context": ["comet", "solen", "sic", "halden", "de"], "right_context": ["deme", "hove", "sint", ".", "De"], "variants": ["jn", "yn", "en"], "text": "Nowg._Schra_Rig.", "corpus": "ReN_1.0"}, {"type": "in", "left_context": ["doͮn", "id", "ne", "si", "dat"], "right_context": ["de", "paues", "sculdige", ".", "dat"], "variants": ["ene", "yn", "en"], "text": "Ssp._Berlin_Fragm._22", "corpus": "ReN_1.0"}]' '{"in": ["jn", "yn", "en", "ene"]}' '{"type": "cnn", "options": {"modelfile_name": "example_data/gml_spellvar_token.model"}}'
+
+
 Web API
 -------
 

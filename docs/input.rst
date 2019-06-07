@@ -45,3 +45,18 @@ A frequency dictionary consists of types and their frequency.
 .. code-block:: json
 
    {"vnd": 42, "und": 201, "vns": 123}
+
+
+Token list
+----------
+
+Token-based tasks (``token_filter`` and the util ``evaluate``) expect a list of
+tokens as input. A token is a json object containing the ``type``, and lists of
+types for each the ``left_context`` and the ``right_context``. Optionally, a
+token can contain known ``variants`` (for training and evaluation),
+``candidates`` from a type-based generater/filter and ``filtered_candidates``
+from a token-based filter.
+
+.. code-block:: json
+
+    {"type": "und", "variants": ["vnd", "vnnde"], "candidates": ["vnd", "vns"], "filtered_candidates": ["vnd"]}

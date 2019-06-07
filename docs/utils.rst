@@ -9,18 +9,43 @@ Evaluation
 
 .. code-block:: bash
 
-   spellvardetection utils evaluate '[{"type": "und", "variants": ["vnd", "vnnde"]}, {"type": "uns", "variants": ["vns"]}]' '{"und": ["vnd", "vns"], "uns": ["vns"]}'
+   spellvardetection utils evaluate '[{"type": "und", "variants": ["vnd", "vnnde"]}, {"type": "uns", "variants": ["vns"]}]' -p '{"und": ["vnd", "vns"], "uns": ["vns"]}'
+   spellvardetection utils evaluate '[{"type": "und", "variants": ["vnd", "vnnde"], "filtered_candidates": ["vnd"]}, {"type": "uns", "variants": ["vns"], "filtered_candidates": ["vns"]}]'
 
 This command prints (token-based) precision, recall and F1 together with the
 mean number of predicted spelling variants and its standard deviation for
 type-based spelling variant detection. As gold data it takes a list of tokens
-with given variants. As prediction data it takes a spelling variant dictionary,
-i.e. a dictionary that gives a list of predicted spelling variants for given
-types.
+with given *variants*. As prediction data it can use the *filtered_candidates*
+included in the token list as output by a token-based filter. Alternatively, a
+spelling variant dictionary as created by type-based generators and filter, i.e.
+a dictionary that gives a list of predicted spelling variants for given types,
+can be added with the option ``-p``.
 
 Optionally, you can add a dictionary with ``-d``. This only consideres variants
 and predicted variants from this dictionary for the evalulation. With ``-k``, you
 can add a dictionary of known types that are ignored for the evaluation.
+
+`Barteld et al. (2019) <https://doi.org/10.1007/s10579-018-09441-5>`_ introduces
+two evaluation settings for spelling variant detection: text-eval and OOV-eval.
+This is how to apply this two settings with the ``evaluate`` command given
+training data in the files ``train_tokens``, ``train_types`` and test (or
+development) data in the files ``test_tokens``, ``test_types``:
+
+For text-eval, the aim is to produce spelling variants from the test data for
+each token in the test data:
+
+.. code-block:: bash
+
+   spellvardetection generate test_types pipeline --dictionary test_types -o text_predictions
+   spellvardetection utils evaluate test_tokens text_predictions -d test_types
+
+For OOV-eval, the aim is to produce spelling variants from the training data for
+each unknown (with respect to the training data) token in the test data:
+
+.. code-block:: bash
+
+   spellvardetection generate test_types pipeline --dictionary train_types -o oov_predictions
+   spellvardetection utils evaluate test_tokens oov_predictions -d train_types -k train_types
 
 .. _training_data:
 

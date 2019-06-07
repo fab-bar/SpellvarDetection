@@ -1,5 +1,5 @@
 .. mdinclude:: ../README.md
-   :end-line: 21
+   :end-line: 31
 
 .. toctree::
    :maxdepth: 1
