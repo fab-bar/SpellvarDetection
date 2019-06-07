@@ -1,3 +1,5 @@
+.. _input:
+
 Preparing your data
 ===================
 
@@ -17,7 +19,7 @@ Dictionary
 
 A dictionary is just a list containing types.
 
-::
+.. code-block:: json
 
    ["vnd", "und", "vns"]
 
@@ -30,7 +32,7 @@ A spelling variant dictionary consists of types and a list of spelling variants
 for each of these types. The ``generate`` and ``filter`` commands both output a
 speling variant dictionary.
 
-::
+.. code-block:: json
 
    {"vnd": ["und", "vnde", "unde"], "und": ["unde", "vnd", "vnde"], "vns": ["uns"]}
 
@@ -40,6 +42,6 @@ Frequency dictionary
 
 A frequency dictionary consists of types and their frequency.
 
-::
+.. code-block:: json
 
    {"vnd": 42, "und": 201, "vns": 123}

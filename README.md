@@ -6,7 +6,7 @@ your data, for example _loool_.
 
 For more information on spelling variant detection see the following paper:
 
-```
+```bib
 @InProceedings{E17-4002,
   author = 	"Barteld, Fabian",
   title = 	"Detecting spelling variants in non-standard texts",

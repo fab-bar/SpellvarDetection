@@ -1,3 +1,5 @@
+.. _pipeline:
+
 Creating a pipeline
 ===================
 
@@ -11,7 +13,9 @@ return the candidates ``["vnd", "unde", "vnnd" "uns"]`` based on their surface
 similarity, where only the first three are actual spelling variants of ``und``.
 Applying a filter on this list can remove the false candidate ``uns``.
 
-Pipelines are definied using :ref:`json <json_note>`::
+Pipelines are definied using :ref:`json <json_note>`:
+
+.. code-block:: json
 
   {
     "type": "pipeline",
@@ -29,7 +33,9 @@ a :ref:`dictionary <dictionary>` within a given `edit distance
 <https://en.wikipedia.org/wiki/Edit_distance>`_. The following definition uses a
 variant of the Levenshtein distance that adds `transpositions
 <https://en.wikipedia.org/wiki/Damerau%E2%80%93Levenshtein_distance>`_ as basic
-edit operation and allows the repetition of characters withou assigning a cost::
+edit operation and allows the repetition of characters withou assigning a cost:
+
+.. code-block:: json
 
   {
     "type": "levenshtein",
@@ -50,7 +56,9 @@ spelling variants and a list of pairs that are not spelling variants. The util
 :ref:`spelling variant dictionary <spellvar_dictionary>` and the output from the
 generator that should be used with the filter.
 
-A trainable filter is trained with the command ``train filter``::
+A trainable filter is trained with the command ``train filter``:
+
+.. code-block:: bash
 
   spellvardetection train filter filter_definition.json modelfile positive_pairs negative_pairs
 
@@ -59,7 +67,9 @@ The trained filter is saved in modelfile.
 The following filter definition trains a `BalancedBaggingClassifier
 <https://imbalanced-learn.readthedocs.io/en/stable/ensemble.html#bagging>`_ to
 filter spelling variant candidates based on differences like *d* and *s* in
-``und``, ``uns``::
+``und``, ``uns``:
+
+.. code-block:: json
 
   {
     "type": "sklearn",
@@ -70,8 +80,10 @@ filter spelling variant candidates based on differences like *d* and *s* in
   }
 
 
-To apply the trained filter in your pipeline use the following filter definition::
+To apply the trained filter in your pipeline use the following filter definition:
  
+.. code-block:: json
+
   {
     "type": "sklearn",
     "options": {
@@ -82,7 +94,9 @@ To apply the trained filter in your pipeline use the following filter definition
 When you have training data, it is also useful to add the known spelling
 variants. This can be done with a ``union`` which combines the candidates
 created by multiple generators. With the following definition, the results from
-a pipeline are combined with known spelling variants::
+a pipeline are combined with known spelling variants:
+
+.. code-block:: json
 
   {
     "type": "union",
