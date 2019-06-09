@@ -12,3 +12,7 @@ coverage:
 .PHONY: docs
 docs:
 	pipenv run tox -e docs
+
+.PHONY: testdocs
+testdocs:
+	pipenv run tox -e testdocs
