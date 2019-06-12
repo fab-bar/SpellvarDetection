@@ -70,6 +70,14 @@
             "editable": true,
             "path": "."
         },
+        "factory-manager": {
+            "hashes": [
+                "sha256:4b3658b913e5fccc996fc426d4444e2335ef22b0ba1d648735c8c8af00a66aea",
+                "sha256:84275a826cdd7efed289f2d49ffd46c57565cd1453edce1e5f50a81092952aba"
+            ],
+            "markers": "python_version >= '3.6'",
+            "version": "==0.1.0"
+        },
         "flask": {
             "hashes": [
                 "sha256:4efa1ae2d7c9865af48986de8aeb8504bf32c7f3d6fdc9353d34b21f4b127060",

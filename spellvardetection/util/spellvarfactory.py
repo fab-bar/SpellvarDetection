@@ -1,13 +1,14 @@
+import factory_manager
+
 from spellvardetection.generator import _AbstractCandidateGenerator
 from spellvardetection.type_filter import _AbstractTrainableTypeFilter, _AbstractTypeFilter
 from spellvardetection.token_filter import _AbstractTrainableTokenFilter, _AbstractTokenFilter
 from spellvardetection.util.feature_extractor import FeatureExtractorMixin
 
 from spellvardetection.lib.util import load_from_file_if_string
-from .factory import Factory
 
 def create_base_factory():
-    factory = Factory(option_parser=load_from_file_if_string)
+    factory = factory_manager.FactoryManager(option_parser=load_from_file_if_string)
     factory.add_factory_method(list, load_from_file_if_string)
     factory.add_factory_method(dict, load_from_file_if_string)
     factory.add_factory_method(set, lambda x: set(load_from_file_if_string(x)))
