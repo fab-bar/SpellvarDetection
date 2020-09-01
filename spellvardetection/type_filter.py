@@ -240,7 +240,7 @@ class UndirSpSimTypeFilter(_SimilarityFilter, _AbstractTrainableTypeFilter):
 
 class EditProbabilitiesTypeFilter(_SimilarityFilter):
 
-    name = 'edit_probabilites'
+    name = 'edit_probabilities'
 
     def similarity(self, word, candidate):
 
