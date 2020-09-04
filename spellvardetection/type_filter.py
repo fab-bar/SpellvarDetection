@@ -155,9 +155,9 @@ class ClusterTypeFilter(_AbstractTypeFilter):
 
     name = 'cluster'
 
-    def create(cluster_type, cluster_file: os.PathLike, unknown_type=None, remove_candidates_without_cluster=False):
+    def create(cluster_type, cluster_file: os.PathLike, simplification_file=None, unknown_type=None, remove_candidates_without_cluster=False):
 
-        clusters = spellvardetection.lib.clusters.WordClusters(cluster_type, cluster_file, unknown_type)
+        clusters = spellvardetection.lib.clusters.WordClusters(cluster_type, cluster_file, simplification_file, unknown_type)
         return ClusterTypeFilter(clusters, remove_candidates_without_cluster)
 
     def __init__(self, clusters, remove_candidates_without_cluster=False):

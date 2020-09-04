@@ -4,7 +4,15 @@ import csv
 
 class WordClusters:
 
-    def __init__(self, cluster_type, cluster_file, unknown_type=None):
+    def __init__(self, cluster_type, cluster_file, simplification_file=None, unknown_type=None):
+
+        self.simplifications = {}
+
+        if simplification_file is not None:
+            with open(simplification_file, 'r', encoding='utf-8') as infile:
+                csvreader = csv.reader(infile, delimiter="\t", quoting=csv.QUOTE_NONE, quotechar="")
+                for row in csvreader:
+                    self.simplifications[row[0]] = row[1]
 
         self.cluster_words = {}
         self.words_cluster = {}
@@ -27,6 +35,9 @@ class WordClusters:
 
     def isOOV(self, word):
 
+        if word in self.simplifications:
+            word = self.simplifications[word]
+
         return word not in self.words_cluster
 
     def hasCluster(self, word):
@@ -34,6 +45,9 @@ class WordClusters:
         return self.getCluster(word) is not None
 
     def getCluster(self, word):
+
+        if word in self.simplifications:
+            word = self.simplifications[word]
 
         if not self.isOOV(word):
             return self.words_cluster[word]
@@ -45,5 +59,11 @@ class WordClusters:
             return None
 
     def inSameCluster(self, word_a, word_b):
+
+        if word_a in self.simplifications:
+            word_a = self.simplifications[word_a]
+
+        if word_b in self.simplifications:
+            word_b = self.simplifications[word_b]
 
         return self.getCluster(word_a) == self.getCluster(word_b)
