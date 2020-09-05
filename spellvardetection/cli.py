@@ -8,7 +8,7 @@ import random
 import click
 import jsonpickle
 
-from .lib.util import load_from_file_if_string, evaluate, getPairsFromSpellvardict
+from .lib.util import load_from_file_if_string, evaluate, getPairsFromSpellvardict, get_positive_and_negative_pairs_with_context
 from .util.spellvarfactory import create_base_factory
 import spellvardetection.util.learn_simplification_rules
 import spellvardetection.util.learn_edit_probabilities
@@ -111,6 +111,38 @@ def filter_(ctx, candidates, filter_settings, output_file, max_processes):
         json.dumps({word_variants[0]: word_variants[1] for word_variants in filtered}),
         file=output_file)
 
+
+@main.command('filter_tokens')
+@click.pass_context
+@click.argument('tokens', type=JsonOption())
+@click.argument('spellvarcandidates', type=JsonOption())
+@click.argument('filter_settings', type=JsonOption())
+@click.option('-o', '--output_file', type=click.File('w'))
+def filter_tokens(ctx, tokens, spellvarcandidates, filter_settings, output_file):
+
+
+    cand_filter = ctx.obj['factory'].create_from_name("token_filter", filter_settings)
+
+    def filter_variants_for_token(token_candidates):
+        token_candidates[0]['variants'] = cand_filter.filterCandidates(token_candidates[0]['type'], token_candidates[1], token_candidates[0]['left_context'], token_candidates[0]['left_context'])
+        return token_candidates[0]
+
+    filtered = [
+        {
+            **token,
+            **{
+                'candidates': spellvarcandidates.get(token['type'], []),
+                'filtered_candidates': list(cand_filter.filterCandidates(token['type'], spellvarcandidates.get(token['type'], []), token['left_context'], token['right_context']))
+            }
+        }
+        for token in tokens
+    ]
+
+    click.echo(
+        json.dumps(filtered),
+        file=output_file)
+
+
 @main.group()
 def train():
     pass
@@ -135,6 +167,43 @@ def train_filter(ctx, filter_settings, modelfile_name, positive_pairs, negative_
     cand_filter.train(positive_pairs, negative_pairs)
     cand_filter.save(modelfile_name)
 
+
+@train.command('token_filter')
+@click.pass_context
+@click.argument('filter_settings', type=JsonOption())
+@click.argument('modelfile_name')
+@click.argument('annotated_tokens', type=JsonOption())
+@click.argument('spellvarcandidates', type=JsonOption())
+@click.option('-s', '--seed', type=int, default=None)
+def train_token_filter(ctx, filter_settings, modelfile_name, annotated_tokens, spellvarcandidates, seed):
+
+    if seed is not None:
+
+        import numpy as np
+        import tensorflow as tf
+        import random as rn
+
+        np.random.seed(seed)
+        rn.seed(seed)
+        # single thread
+        session_conf = tf.ConfigProto(
+            intra_op_parallelism_threads=1,
+            inter_op_parallelism_threads=1)
+
+        from keras import backend as K
+        tf.set_random_seed(seed)
+        sess = tf.Session(graph=tf.get_default_graph(), config=session_conf)
+        K.set_session(sess)
+
+
+    cand_filter = ctx.obj['factory'].create_from_name("trainable_token_filter", filter_settings)
+
+    ### get positive and negative pairs from tokens
+    positive_pairs, negative_pairs = get_positive_and_negative_pairs_with_context(
+        annotated_tokens, spellvarcandidates)
+
+    cand_filter.train(positive_pairs, negative_pairs)
+    cand_filter.save(modelfile_name)
 
 @main.group()
 def utils():
