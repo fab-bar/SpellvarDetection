@@ -1,0 +1,23 @@
+[
+    {"type": "in", "left_context": ["is", "dat", "boͮc", "de", "rechtes"], "right_context": ["deme", "hove", "to", "nogarden", "."], "variants": ["jn", "yn", "en"], "text": "Nowg._Schra_Rig.", "corpus": "ReN_1.0"},
+    {"type": "in", "left_context": [".", "vnde", "ghewesen", "heuet"], "right_context": ["deme", "hove", "der", "dhudesscen"], "variants": ["jn", "yn", "en"], "text": "Nowg._Schra_Rig.", "corpus": "ReN_1.0"},
+    {"type": "in", "left_context": ["men", "al", "vtlesen", "twige"], "right_context": ["dheme", "iare", "beyde", "somervaren"], "variants": ["jn", "yn", "en"], "text": "Nowg._Schra_Rig.", "corpus": "ReN_1.0"},
+    {"type": "in", "left_context": ["winteruare", "so", "wanne", "se", "komet"], "right_context": ["de", "Nv", ".", "so", "solen"], "variants": ["jn", "yn", "en"], "text": "Nowg._Schra_Rig.", "corpus": "ReN_1.0"},
+    {"type": "in", "left_context": ["vrien", "wilcore", "hvs", "to", "kesende"], "right_context": ["deme", "houe", ".", "war", "so"], "variants": ["jn", "yn", "en"], "text": "Nowg._Schra_Rig.", "corpus": "ReN_1.0"},
+    {"type": "in", "left_context": ["ouer", "vrien", "wilcore", "to", "entfande"], "right_context": ["sine", "herberghe", "also", "manighen"], "variants": ["jn", "yn", "en"], "text": "Nowg._Schra_Rig.", "corpus": "ReN_1.0"},
+    {"type": "in", "left_context": ["watervaren", "entwiken", "den", "lantvaren"], "right_context": ["deme", "stoven", "dar", "se", "moghen"], "variants": ["jn", "yn", "en"], "text": "Nowg._Schra_Rig.", "corpus": "ReN_1.0"},
+    {"type": "in", "left_context": ["olderman", "der", "watervare", "also", "he"], "right_context": ["den", "hof", "comet", "enen"], "variants": ["jn", "yn", "en"], "text": "Nowg._Schra_Rig.", "corpus": "ReN_1.0"},
+    {"type": "in", "left_context": ["de", "hvs", ".", "vnde", "komet"], "right_context": ["den", "hof", ".", "vindet", "se"], "variants": ["jn", "yn", "en"], "text": "Nowg._Schra_Rig.", "corpus": "ReN_1.0"},
+    {"type": "in", "left_context": ["hebbet", ".", "vnde", "varen"], "right_context": ["andere", "hus", ".", "is", "es"], "variants": ["jn", "yn", "en"], "text": "Nowg._Schra_Rig.", "corpus": "ReN_1.0"},
+
+    {"type": "in", "left_context": ["ciseke", "ein", "half", "erbe", "dat"], "right_context": ["anerstarf", "van", "sime", "vader"], "variants": ["ene", "yn", "en"], "text": "SchöffB._Aken", "corpus": "ReN_1.0"},
+    {"type": "in", "left_context": ["die", "streteken", "tuischen"], "right_context": [".", "Albrecht", "van", "zawiz"], "variants": ["ene", "yn", "en"], "text": "SchöffB._Aken", "corpus": "ReN_1.0"},
+    {"type": "in", "left_context": ["gebv", "beteren", "oder"], "right_context": ["wedergeven", ".", "Alsogedan"], "variants": ["ene", "yn", "en"], "text": "SchöffB._Halle", "corpus": "ReN_1.0"},
+    {"type": "in", "left_context": [".", "Dar", "tuͦ", "hevet", "he"], "right_context": ["gegeven", "al", "sin", "erve"], "variants": ["ene", "yn", "en"], "text": "SchöffB._Halle", "corpus": "ReN_1.0"},
+    {"type": "in", "left_context": ["sie", "des", "sin", "wif", "mit"], "right_context": [".", "vnde", "gaf", "in"], "variants": ["ene", "yn", "en"], "text": "SchöffB._Halle", "corpus": "ReN_1.0"},
+    {"type": "in", "left_context": ["in", ".", "vnde", "gaf"], "right_context": ["tein", "mark", ".", "vnde"], "variants": ["ene", "yn", "en"], "text": "SchöffB._Halle", "corpus": "ReN_1.0"},
+    {"type": "in", "left_context": ["sic", "verminnet", "mit"], "right_context": [".", "vnde", "sete", "in"], "variants": ["ene", "yn", "en"], "text": "SchöffB._Halle", "corpus": "ReN_1.0"},
+    {"type": "in", "left_context": ["oder", "losen", "dat", "it"], "right_context": ["wetenlic", "si", ".", "her", "egenhart"], "variants": ["ene", "yn", "en"], "text": "SchöffB._Halle", "corpus": "ReN_1.0"},
+    {"type": "in", "left_context": ["koningrike", "seder", "wandele", "men"], "right_context": ["den", "namen", "vnde", "het"], "variants": ["ene", "yn", "en"], "text": "Ssp._Berlin_Fragm._22", "corpus": "ReN_1.0"},
+    {"type": "in", "left_context": ["den", "namen", ".", "Seder", "hebbet"], "right_context": ["de", "k", "beide", "vorsten"], "variants": ["ene", "yn", "en"], "text": "Ssp._Berlin_Fragm._22", "corpus": "ReN_1.0"}
+]

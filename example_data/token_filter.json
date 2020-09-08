@@ -1,0 +1,8 @@
+{
+    "type": "cnn",
+    "options": {
+        "left_context_len": 1,
+        "right_context_len": 1,
+        "epochs": 75
+    }
+}
