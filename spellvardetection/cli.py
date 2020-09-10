@@ -250,14 +250,17 @@ def extract_training_data(gold_variants, generated_variants,
 
 @utils.command('evaluate')
 @click.argument('gold_data', type=JsonOption())
-@click.argument('predictions', type=JsonOption())
+@click.option('-p', '--predictions', type=JsonOption())
 @click.option('-d', '--dictionary', type=JsonOption())
 @click.option('-k', '--known_dictionary', type=JsonOption())
 @click.option('-f', '--freq_dict', type=JsonOption())
-def evaluate_command(gold_data, predictions, dictionary=None, known_dictionary=None, freq_dict=None):
+def evaluate_command(gold_data, predictions=None, dictionary=None, known_dictionary=None, freq_dict=None):
 
     # add type-based predictions to tokens
-    tokens = [{**token, **{'filtered_candidates': predictions.get(token['type'], [])}} for token in gold_data]
+    if predictions is not None:
+        tokens = [{**token, **{'filtered_candidates': predictions.get(token['type'], [])}} for token in gold_data]
+    else:
+        tokens = gold_data
 
     if dictionary is not None:
         dictionary = set(dictionary)

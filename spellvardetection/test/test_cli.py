@@ -263,7 +263,7 @@ class TestCLI(unittest.TestCase):
         predictions = {'dyt': ['dit', 'ist'], 'is': ['dit', 'ist']}
 
         runner = CliRunner()
-        result = runner.invoke(spellvardetection.cli.utils, ['evaluate', json.dumps(tokens), json.dumps(predictions)])
+        result = runner.invoke(spellvardetection.cli.utils, ['evaluate', json.dumps(tokens), '-p', json.dumps(predictions)])
 
         self.assertEquals(result.output, '0.50|1.00|0.67|2.00+-0.00\n')
 
@@ -278,7 +278,7 @@ class TestCLI(unittest.TestCase):
         dict_ = ['ist']
 
         runner = CliRunner()
-        result = runner.invoke(spellvardetection.cli.utils, ['evaluate', json.dumps(tokens), json.dumps(predictions),
+        result = runner.invoke(spellvardetection.cli.utils, ['evaluate', json.dumps(tokens), '-p', json.dumps(predictions),
                                                              '--dictionary', json.dumps(dict_)
         ])
 
@@ -297,7 +297,7 @@ class TestCLI(unittest.TestCase):
         known = ['dyt']
 
         runner = CliRunner()
-        result = runner.invoke(spellvardetection.cli.utils, ['evaluate', json.dumps(tokens), json.dumps(predictions),
+        result = runner.invoke(spellvardetection.cli.utils, ['evaluate', json.dumps(tokens), '-p', json.dumps(predictions),
                                                              '--dictionary', json.dumps(dict_), '--known_dictionary', json.dumps(known)
         ])
 
@@ -314,7 +314,7 @@ class TestCLI(unittest.TestCase):
         freq_dict = {'is': 10}
 
         runner = CliRunner()
-        result = runner.invoke(spellvardetection.cli.utils, ['evaluate', json.dumps(tokens), json.dumps(predictions),
+        result = runner.invoke(spellvardetection.cli.utils, ['evaluate', json.dumps(tokens), '-p', json.dumps(predictions),
                                                              '--freq_dict', json.dumps(freq_dict)
         ])
 
