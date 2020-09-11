@@ -9,7 +9,7 @@
 # -- Project information -----------------------------------------------------
 
 project = 'SpellvarDetection'
-copyright = '2018-2019, Fabian Barteld'
+copyright = '2018-2020, Fabian Barteld'
 author = 'Fabian Barteld'
 
 # get the version

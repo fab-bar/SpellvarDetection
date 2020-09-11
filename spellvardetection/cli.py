@@ -174,27 +174,7 @@ def train_filter(ctx, filter_settings, modelfile_name, positive_pairs, negative_
 @click.argument('modelfile_name')
 @click.argument('annotated_tokens', type=JsonOption())
 @click.argument('spellvarcandidates', type=JsonOption())
-@click.option('-s', '--seed', type=int, default=None)
-def train_token_filter(ctx, filter_settings, modelfile_name, annotated_tokens, spellvarcandidates, seed):
-
-    if seed is not None:
-
-        import numpy as np
-        import tensorflow as tf
-        import random as rn
-
-        np.random.seed(seed)
-        rn.seed(seed)
-        # single thread
-        session_conf = tf.ConfigProto(
-            intra_op_parallelism_threads=1,
-            inter_op_parallelism_threads=1)
-
-        from keras import backend as K
-        tf.set_random_seed(seed)
-        sess = tf.Session(graph=tf.get_default_graph(), config=session_conf)
-        K.set_session(sess)
-
+def train_token_filter(ctx, filter_settings, modelfile_name, annotated_tokens, spellvarcandidates):
 
     cand_filter = ctx.obj['factory'].create_from_name("trainable_token_filter", filter_settings)
 

@@ -9,17 +9,14 @@ import pickle
 import numpy
 import numpy.random
 
-from keras.preprocessing.sequence import pad_sequences
-from keras.preprocessing.text import Tokenizer
-from keras.models import load_model, Model
-from keras.layers import Input, Embedding, Conv1D, GlobalMaxPooling1D, Dense, concatenate, Reshape
+import tensorflow
+
+from tensorflow.keras.preprocessing.sequence import pad_sequences
+from tensorflow.keras.preprocessing.text import Tokenizer
+from tensorflow.keras.models import load_model, Model
+from tensorflow.keras.layers import Input, Embedding, Conv1D, GlobalMaxPooling1D, Dense, concatenate, Reshape
 
 import joblib
-from keras_pickle_wrapper import KerasPickleWrapper
-
-## suppress DeprecationWarnings
-import tensorflow as tf
-tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 
 import spellvardetection.lib.util
 import spellvardetection.lib.embeddings
@@ -67,8 +64,13 @@ class CNNTokenFilter(_AbstractTrainableTokenFilter):
     def __init__(self, left_context_len, right_context_len,
                  use_form_embedding=True, vector_type=None, vectorfile_name: os.PathLike = None,  simplfile_name: os.PathLike = None,
                  filter_lengths: list = None, char_filter_lengths: list = None, nb_filter=50, max_word_len=12, char_embedding_dim=10,
-                 batch_size=20, epochs=10
+                 batch_size=20, epochs=10, seed=None
     ):
+
+        if seed is not None:
+            numpy.random.seed(seed)
+            random.seed(seed)
+            tensorflow.random.set_seed(seed)
 
         self.left_context_len = left_context_len
         self.right_context_len = right_context_len
@@ -219,27 +221,29 @@ class CNNTokenFilter(_AbstractTrainableTokenFilter):
                 input_list = [self._getInput(pair[1], pair[2], pair[3]) for pair in batch]
                 X = [numpy.concatenate(inp) for inp in zip(*input_list)]
 
-                Y = [1]*positive_batch_size + [0]*positive_batch_size
+                Y = numpy.array([1]*positive_batch_size + [0]*positive_batch_size)
                 yield (X, Y)
 
-        self.clf.fit_generator(
-            batch_generator(positive_pairs, negative_pairs, min(self.batch_size, len(positive_pairs))),
+        gen = batch_generator(positive_pairs, negative_pairs, min(self.batch_size, len(positive_pairs)))
+        self.clf.fit(
+            x=batch_generator(positive_pairs, negative_pairs, min(self.batch_size, len(positive_pairs))),
             steps_per_epoch=len(positive_pairs)/self.batch_size, epochs=self.epochs)
 
+    def __getstate__(self):
 
-        self.clf = KerasPickleWrapper(self.clf)
+        state = self.__dict__.copy()
+        del state['clf']
+        return state
 
     def save(self, modelfile_name):
         joblib.dump(self, modelfile_name)
+        self.clf.save(modelfile_name + '.tf')
 
     def load(modelfile_name):
-        return joblib.load(modelfile_name)
+        obj = joblib.load(modelfile_name)
+        obj.clf = tensorflow.keras.models.load_model(modelfile_name + '.tf')
+        return obj
 
-
-    def _getClassifier(self):
-
-        ## unwrap the model from KerasPickleWrapper
-        return super()._getClassifier()()
 
     def isPair(self, word, candidate, left_context, right_context):
 

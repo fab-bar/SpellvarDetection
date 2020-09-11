@@ -16,11 +16,7 @@ from sklearn.pipeline import Pipeline, FeatureUnion
 from sklearn.utils.metaestimators import _BaseComposition
 from sklearn.svm import SVC
 
-import warnings
-
-with warnings.catch_warnings():
-    warnings.filterwarnings("ignore",category=DeprecationWarning)
-    from imblearn.ensemble import BalancedBaggingClassifier
+from imblearn.ensemble import BalancedBaggingClassifier
 
 from spellvardetection.util.feature_extractor import FeatureExtractorMixin, SurfaceExtractor
 import spellvardetection.lib.clusters
@@ -74,7 +70,7 @@ class SKLearnClassifierBasedTypeFilter(_AbstractTrainableTypeFilter, _BaseCompos
                 base_estimator=SVC(gamma=0.1, C=2),
                 n_estimators=10,
                 bootstrap=False,
-                ratio='majority'
+                sampling_strategy='majority'
             )
         elif '.' in classifier_clsname:
             module_name, cls_name = classifier_clsname.rsplit('.', 1)

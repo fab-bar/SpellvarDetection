@@ -5,7 +5,16 @@ import shutil
 import click
 from flask import g, current_app
 from flask.cli import AppGroup
-from tinymongo import TinyMongoClient
+
+## quickfix for problem with tinymongo
+## https://github.com/schapman1974/tinymongo/issues/58
+import tinymongo as tm
+import tinydb
+
+class TinyMongoClient(tm.TinyMongoClient):
+    @property
+    def _storage(self):
+        return tinydb.storages.JSONStorage
 
 from spellvardetection.lib.util import load_from_file_if_string
 
